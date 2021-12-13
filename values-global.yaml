@@ -7,5 +7,9 @@ global:
     syncPolicy: Automatic
     installPlanApproval: Automatic
 
+  # Needed by vault to avoid trying to set some security contexts which do not apply on openshift
+  # See https://github.com/hashicorp/vault-helm/issues/343 for more infos
+  openshift: true
+
 main:
   clusterGroupName: hub
