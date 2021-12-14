@@ -11,5 +11,10 @@ global:
   # See https://github.com/hashicorp/vault-helm/issues/343 for more infos
   openshift: true
 
+# Enable vault dev server mode in vault
+server:
+  dev:
+    enabled: true
+
 main:
   clusterGroupName: hub
