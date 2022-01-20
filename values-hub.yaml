@@ -47,6 +47,8 @@ clusterGroup:
       value: edge
     - name: server.route.enabled
       value: "true"
+    - name: server.route.host
+      value: "vault.{{ $.Values.global.hubClusterDomain }}"
     - name: server.image.repository
       value: "registry.connect.redhat.com/hashicorp/vault"
     - name: server.image.tag
