@@ -1,5 +1,6 @@
 clusterGroup:
   name: hub
+  isHubCluster: True
 
   proposedOptions:
     manageGitops: True
