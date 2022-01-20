@@ -68,7 +68,7 @@ spec:
                         {{- if $.Values.clusterGroup.isHubCluster }}
                         value: {{ $.Values.global.hubClusterDomain }}
                         {{- else }}
-                        value: '{{ `{{ (lookup "config.openshift.io/v1" "Ingress" "" "cluster").spec.domain }}` }}'
+                        value: '{{ coalesce `{{ (lookup "config.openshift.io/v1" "Ingress" "" "cluster").spec.domain }}` $.Values.global.hubClusterDomain }}'
                         {{- end }}
                      {{- range .helmOverrides }}
                       - name: {{ .name }}
