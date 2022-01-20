@@ -32,9 +32,8 @@ clusterGroup:
   - name: vault
     namespace: vault
     project: hub
-    chart: vault
     repoURL: https://helm.releases.hashicorp.com
-    targetRevision: v0.18.0
+    targetRevision: 92da5125777b87b7475f546e0a7127b9517fe735
     overrides:
     - name: global.openshift
       value: "true"
@@ -55,10 +54,10 @@ clusterGroup:
     - name: injector.agentImage.tag
       value: "1.9.0-ubi"
 
-  - name: vault-route
-    namespace: vault
-    project: hub
-    path: common/vault-route
+#  - name: vault-route
+#    namespace: vault
+#    project: hub
+#    path: common/vault-route
 
   managedClusterGroups:
   - name: region-one
