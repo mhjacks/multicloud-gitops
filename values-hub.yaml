@@ -48,7 +48,7 @@ clusterGroup:
     - name: server.route.enabled
       value: "true"
     - name: server.route.host
-      value: ""
+      value: null
     - name: server.image.repository
       value: "registry.connect.redhat.com/hashicorp/vault"
     - name: server.image.tag
