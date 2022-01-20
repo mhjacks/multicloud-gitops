@@ -67,7 +67,6 @@ spec:
                       - name: {{ .name }}
                         value: {{ .value | quote }}
                      {{- end }}
-                  {{- end }}
                   destination:
                     server: https://kubernetes.default.svc
                     namespace: {{ $.Values.global.pattern }}-{{ .name }}
