@@ -33,7 +33,8 @@ clusterGroup:
     namespace: vault
     project: hub
     repoURL: https://github.com/hashicorp/vault-helm.git
-    targetRevision: 92da5125777b87b7475f546e0a7127b9517fe735
+    #targetRevision: 92da5125777b87b7475f546e0a7127b9517fe735
+    targetRevision: main
     chart: vault
     overrides:
     - name: global.openshift
