@@ -1,13 +1,13 @@
 ui:
-  enabled: true
+  enabled: "true"
   serviceType: LoadBalancer
 
 injector:
-  enabled: false
+  enabled: "false"
 
 server:
   route:
-    enabled: true
+    enabled: "true"
     host: null
     tls:
       termination: edge
