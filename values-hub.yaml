@@ -41,14 +41,28 @@ clusterGroup:
       chart: vault
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
-      extraValueFiles:
-      - "/vault-openshift.yaml"
-      - "/vault-openshift-overrides.yaml"
+      #extraValueFiles:
+      #- "/vault-openshift.yaml"
+      #- "/vault-openshift-overrides.yaml"
       overrides:
       - name: server.route.host
         value: null
       - name: injector.enabled
         value: "false"
+      - name: global.openshift
+        value: "true"
+      - name: ui.enabled
+        value: "true"
+      - name: ui.serviceType
+        value: LoadBalancer
+      - name: server.route.enabled
+        value: "true"
+      - name: server.route.tls.termination
+        value: edge
+      - name: server.image.repository
+        value: "registry.connect.redhat.com/hashicorp/vault"
+      - name: server.image.tag
+        value: "1.10.3-ubi"
 
     golang-external-secrets:
       name: golang-external-secrets
