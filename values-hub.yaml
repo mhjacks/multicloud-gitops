@@ -41,6 +41,9 @@ clusterGroup:
       chart: vault
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
+      extraValueFiles:
+      - "/test.yaml"
+      - "/test-2.yaml"
       overrides:
       - name: global.openshift
         value: "true"
