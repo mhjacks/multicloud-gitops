@@ -63,6 +63,9 @@ clusterGroup:
         value: "registry.connect.redhat.com/hashicorp/vault"
       - name: server.image.tag
         value: "1.10.3-ubi"
+      #fileParameters:
+      #- name: foo.image
+      #  path: /README.md
 
     golang-external-secrets:
       name: golang-external-secrets
