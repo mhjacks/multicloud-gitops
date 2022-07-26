@@ -47,6 +47,8 @@ clusterGroup:
       overrides:
       - name: server.route.host
         value: null
+      - name: injector.enabled
+        value: "false"
 
     golang-external-secrets:
       name: golang-external-secrets
