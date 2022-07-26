@@ -1,0 +1,8 @@
+ui:
+  enabled: true
+  serviceType: LoadBalancer
+
+server:
+  route:
+    enabled: true
+    host: null
