@@ -1,7 +1,7 @@
 {{/* Only define this if there are any applicationSets defined */}}
-{{- if gt (len $.Values.clusterGroup.applicationSets) 0 -}}
+{{- if gt (len $.Values.clusterGroup.applicationsets) 0 -}}
 {{- $namespace := cat $.Values.global.pattern $.Values.clusterGroup.name | replace " " "-" }}
-{{- range .Values.clusterGroup.applicationSets }}
+{{- range .Values.clusterGroup.applicationsets }}
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -26,6 +26,9 @@ spec:
       source:
         repoURL: {{ coalesce .repoURL $.Values.global.repoURL }}
         targetRevision: {{ coalesce .targetRevision $.Values.global.targetRevision }} 
+        {{- if .chart }}
+        chart: {{ .chart }}
+        {{- end }}
         {{- if .path }}
         path: {{ .path }}
         {{- end }}
