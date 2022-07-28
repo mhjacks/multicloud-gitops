@@ -30,11 +30,14 @@ clusterGroup:
       chart: vault
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
+      extraValuesFiles:
+        - "/vault-values-openshift.yaml"
+        - "/vault-overrides-openshift.yaml"
       generators:
         - list:
             elements:
-              - cluster: test
-                url: 1.2.3.4
+              - cluster: local
+                url: local
   applications:
     acm:
       name: acm
@@ -47,32 +50,32 @@ clusterGroup:
         jsonPointers:
           - /spec/loggingCA
 
-    vault:
-      name: vault
-      namespace: vault
-      project: hub
-      chart: vault
-      repoURL: https://helm.releases.hashicorp.com
-      targetRevision: v0.20.1
-      overrides:
-      - name: global.openshift
-        value: "true"
-      - name: injector.enabled
-        value: "false"
-      - name: ui.enabled
-        value: "true"
-      - name: ui.serviceType
-        value: LoadBalancer
-      - name: server.route.enabled
-        value: "true"
-      - name: server.route.host
-        value: null
-      - name: server.route.tls.termination
-        value: edge
-      - name: server.image.repository
-        value: "registry.connect.redhat.com/hashicorp/vault"
-      - name: server.image.tag
-        value: "1.10.3-ubi"
+#    vault:
+#      name: vault
+#      namespace: vault
+#      project: hub
+#      chart: vault
+#      repoURL: https://helm.releases.hashicorp.com
+#      targetRevision: v0.20.1
+#      overrides:
+#      - name: global.openshift
+#        value: "true"
+#      - name: injector.enabled
+#        value: "false"
+#      - name: ui.enabled
+#        value: "true"
+#      - name: ui.serviceType
+#        value: LoadBalancer
+#      - name: server.route.enabled
+#        value: "true"
+#      - name: server.route.host
+#        value: null
+#      - name: server.route.tls.termination
+#        value: edge
+#      - name: server.image.repository
+#        value: "registry.connect.redhat.com/hashicorp/vault"
+#      - name: server.image.tag
+#        value: "1.10.3-ubi"
 
     golang-external-secrets:
       name: golang-external-secrets
