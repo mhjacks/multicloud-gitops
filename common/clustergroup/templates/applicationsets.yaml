@@ -9,7 +9,7 @@ metadata:
   labels:
     app: {{ .name }}
 spec:
-  generators: {{ .generators }}
+  generators: {{ .generators | toPrettyJson }}
   template:
     metadata:
       name: {{ coalesce .namespace $namespace }}
@@ -45,6 +45,11 @@ spec:
         {{- range .extraValueFiles }}
             - "{{ . }}"
         {{- end }}
+          #parameters:
+          #  - name: global.hubClusterDomain
+          #    value: {{ $.Values.global.hubClusterDomain }}
+          #  - name: global.localClusterDomain
+          #    value: {{ coalesce $.Values.global.localClusterDomain $.Values.global.hubClusterDomain }}
         {{- end }}
           #parameters:
           #  - name: global.repoURL
@@ -63,6 +68,6 @@ spec:
           #    value: {{ coalesce $.Values.global.localClusterDomain $.Values.global.hubClusterDomain }}
       destination:
         server: {{ coalesce .destinationURL "https://kubernetes.default.svc" }}
-        namespace: {{ $namespace }}
+        namespace: {{ coalesce .namespace $namespace }}
 {{- end }}
 ---
