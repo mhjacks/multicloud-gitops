@@ -30,7 +30,11 @@ clusterGroup:
       chart: vault
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
-
+      generators:
+        - list:
+            elements:
+              - cluster: test
+                url: 1.2.3.4
   applications:
     acm:
       name: acm
