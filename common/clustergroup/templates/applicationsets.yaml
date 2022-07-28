@@ -1,5 +1,4 @@
 {{/* Only define this if there are any applicationSets defined */}}
-{{- if gt (len $.Values.clusterGroup.applicationsets) 0 -}}
 {{- $namespace := cat $.Values.global.pattern $.Values.clusterGroup.name | replace " " "-" }}
 {{- range .Values.clusterGroup.applicationsets }}
 apiVersion: argoproj.io/v1alpha1
@@ -17,11 +16,13 @@ spec:
     spec:
       project: {{ .project }}
       {{- if .syncPolicy }}
-      syncPolicy:
-        {{ .syncPolicy | nindent 8 }}
+      syncPolicy: {{ .syncPolicy | toPrettyJson }}
       {{- else }}
       syncPolicy:
         automated: {}
+      {{- end }}
+      {{- if .ignoreDifferences }}
+      ignoreDifferences: {{ .ignoreDifferences | toPrettyJson }}
       {{- end }}
       source:
         repoURL: {{ coalesce .repoURL $.Values.global.repoURL }}
@@ -32,8 +33,12 @@ spec:
         {{- if .path }}
         path: {{ .path }}
         {{- end }}
-        {{- if .helm }}
+        {{- if .plugin }}
+        plugin: {{ .plugin }}
+        {{- end }}
+        {{- if not .kustomize }}
         helm:
+          ignoreMissingValueFiles: true
           valueFiles: |
             - "/values-global.yaml"
             - "/values-{{ $.Values.clusterGroup.name }}.yaml"
@@ -61,5 +66,3 @@ spec:
         namespace: {{ $namespace }}
 {{- end }}
 ---
-{{- end }}
-{{- end }}
