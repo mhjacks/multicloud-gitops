@@ -10,4 +10,4 @@ global:
 main:
   clusterGroupName: hub
   gitops:
-    channel: stable
+    channel: latest
