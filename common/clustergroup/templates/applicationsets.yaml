@@ -45,6 +45,10 @@ spec:
         {{- range .extraValueFiles }}
             - {{ . | quote }}
         {{- end }}
+        {{- if .values }}
+          values: |-
+            '{{ `{{ "values" }}` }}'
+        {{- end }}
           parameters:
             - name: global.hubClusterDomain
               value: {{ $.Values.global.hubClusterDomain }}
