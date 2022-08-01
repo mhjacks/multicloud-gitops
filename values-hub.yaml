@@ -30,14 +30,13 @@ clusterGroup:
       chart: vault
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
-      extraValueFiles:
-        - "/vault-values-openshift.yaml"
-        - "/vault-overrides-openshift.yaml"
       generators:
-        - list:
-            elements:
-              - cluster: local
-                url: local
+        - git:
+            repoURL: https://github.com/mhjacks/multicloud-gitops.git
+            revision: test-appset
+            files:
+              - path: "vault-appset/in-cluster.yaml"
+
   applications:
     acm:
       name: acm
