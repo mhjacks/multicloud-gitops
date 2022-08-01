@@ -31,6 +31,10 @@ spec:
       {{- range $valueFile := .extraValueFiles }}
       - {{ $valueFile | quote }}
       {{- end }}
+      {{- if .values }}
+      values: |-
+        {{ .values }}
+      {{- end }}
       # Watch the progress of https://issues.redhat.com/browse/GITOPS-891 and update accordingly
       parameters:
         - name: global.repoURL
