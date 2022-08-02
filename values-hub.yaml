@@ -35,7 +35,7 @@ clusterGroup:
       generators:
         - git:
             revision: '$ARGOCD_APP_TARGET_REVISION'
-            repoURL: '$ARGOCD_APP_SOURCE'
+            repoURL: '$ARGOCD_APP_SOURCE_REPO_URL'
             files:
               - path: "vault-appset/in-cluster.yaml"
   applications:
