@@ -31,13 +31,13 @@ clusterGroup:
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
       useGeneratorValues: true
-      #generatorFile: "vault-appset/in-cluster.yaml"
-      generators:
-        - git:
-            revision: '$ARGOCD_APP_TARGET_REVISION'
-            repoURL: '$ARGOCD_APP_SOURCE_REPO_URL'
-            files:
-              - path: "vault-appset/in-cluster.yaml"
+      generatorFile: "vault-appset/in-cluster.yaml"
+#      generators:
+#        - git:
+#            revision: test-appset
+#            repoURL: https://github.com/mhjacks/multicloud-gitops.git
+#            files:
+#              - path: "vault-appset/in-cluster.yaml"
   applications:
     acm:
       name: acm
