@@ -17,9 +17,11 @@ spec:
         repoURL: {{ $.Values.global.repoURL }}
         revision: {{ $.Values.global.targetRevision }}
         {{- if .generatorFiles }}
+        files:
         {{ .generatorFiles | toPrettyJson }}
         {{- end }}
         {{- if .generatorDirectories }}
+        directories:
         {{ .generatorDirectories | toPrettyJson }}
         {{- end }}
   {{- end }}
