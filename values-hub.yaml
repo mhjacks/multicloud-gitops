@@ -31,12 +31,8 @@ clusterGroup:
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
       useGeneratorValues: true
-      generators:
-        - git:
-            repoURL: https://github.com/mhjacks/multicloud-gitops.git
-            revision: test-appset
-            files:
-              - path: "vault-appset/in-cluster.yaml"
+      generatorFiles:
+        - path: "vault-appset/in-cluster.yaml"
 
   applications:
     acm:
