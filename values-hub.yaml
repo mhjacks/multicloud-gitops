@@ -22,6 +22,8 @@ clusterGroup:
   - hub
   - config-demo
 
+  # Idea suggested by https://softrams.com/insights/external-value-files-in-argo-cd-with-applicationsets/
+  # More detail available on the feature at https://argocd-applicationset.readthedocs.io/en/stable/
   applicationsets:
     vault-exp:
       # These settings work the same as in an application: block
@@ -53,6 +55,7 @@ clusterGroup:
 #            repoURL: https://github.com/mhjacks/multicloud-gitops.git
 #            files:
 #              - path: "vault-appset/in-cluster.yaml"
+
   applications:
     acm:
       name: acm
