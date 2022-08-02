@@ -3,26 +3,21 @@
 values: |
   global:
     openshift: true
-
   injector:
     enabled: false
     image:
       repository: "registry.connect.redhat.com/hashicorp/vault-k8s"
       tag: "0.16.1-ubi"
-
     agentImage:
       repository: "registry.connect.redhat.com/hashicorp/vault"
       tag: "1.10.3-ubi"
-
   server:
     image:
       repository: "registry.connect.redhat.com/hashicorp/vault"
       tag: "1.10.3-ubi"
-
   ui:
     enabled: true
     serviceType: LoadBalancer
-
   server:
     route:
       enabled: true
