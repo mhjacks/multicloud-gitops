@@ -20,10 +20,6 @@ spec:
         files:
           - path: {{ .generatorFile | quote }}
         {{- end }}
-        {{- if .generatorDirectories }}
-        directories:
-        {{ .generatorDirectories | toPrettyJson }}
-        {{- end }}
   {{- end }}
   template:
     metadata:
