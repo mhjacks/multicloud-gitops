@@ -9,7 +9,20 @@ metadata:
   labels:
     app: {{ .name }}
 spec:
+  {{- if .generators }}
   generators: {{ .generators | toPrettyJson }}
+  {{- else }}
+  generators:
+    - git:
+        repoURL: {{ $.Values.global.repoURL }}
+        revision: {{ $.Values.global.targetRevision }}
+        {{- if .generatorFiles }}
+        {{ .generatorFiles | toPrettyJson }}
+        {{- end }}
+        {{- if .generatorDirectories }}
+        {{ .generatorDirectories | toPrettyJson }}
+        {{- end }}
+  {{- end }}
   template:
     metadata:
       name: {{ coalesce .namespace $namespace }}
