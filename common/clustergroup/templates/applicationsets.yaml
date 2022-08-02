@@ -14,8 +14,8 @@ spec:
   {{- else }}
   generators:
     - git:
-        repoURL: {{ $.Values.global.repoURL }}
-        revision: {{ $.Values.global.targetRevision }}
+        repoURL: '$ARGOCD_APP_SOURCE_REPO_URL'
+        revision: '$ARGOCD_APP_SOURCE_TARGET_REVISION'
         {{- if .generatorFiles }}
         files:
         {{ .generatorFiles | toPrettyJson }}
