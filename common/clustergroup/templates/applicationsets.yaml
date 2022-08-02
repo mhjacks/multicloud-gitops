@@ -41,12 +41,10 @@ spec:
           ignoreMissingValueFiles: true
           valueFiles:
             - "values.yaml"
-          #  - "/values-global.yaml"
-          #  - "/values-{{ $.Values.clusterGroup.name }}.yaml"
         {{- range .extraValueFiles }}
             - {{ . | quote }}
         {{- end }}
-        {{- if .values }}
+        {{- if .useGeneratorValues }}
           values: |-
             {{ `{{ values }}` }}
         {{- end }}
