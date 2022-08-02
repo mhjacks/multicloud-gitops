@@ -5,7 +5,7 @@ values: |
     openshift: true
 
   injector:
-    enabled: "false"
+    enabled: false
     image:
       repository: "registry.connect.redhat.com/hashicorp/vault-k8s"
       tag: "0.16.1-ubi"
@@ -25,7 +25,7 @@ values: |
 
   server:
     route:
-      enabled: "true"
+      enabled: true
       host: null
       tls:
         termination: edge
