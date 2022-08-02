@@ -16,9 +16,9 @@ spec:
     - git:
         repoURL: '$ARGOCD_APP_SOURCE_REPO_URL'
         revision: '$ARGOCD_APP_SOURCE_TARGET_REVISION'
-        {{- if .generatorFiles }}
+        {{- if .generatorFile }}
         files:
-        {{ .generatorFiles | toPrettyJson }}
+          - path: {{ .generatorFile | quote }}
         {{- end }}
         {{- if .generatorDirectories }}
         directories:
