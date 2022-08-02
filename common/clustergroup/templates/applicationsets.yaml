@@ -14,8 +14,8 @@ spec:
   {{- else }}
   generators:
     - git:
-        repoURL: '$ARGOCD_APP_SOURCE_REPO_URL'
-        revision: '$ARGOCD_APP_SOURCE_TARGET_REVISION'
+        repoURL: {{ $.Values.global.repoURL }}
+        revision: {{ $.Values.global.targetRevision }}
         {{- if .generatorFile }}
         files:
           - path: {{ .generatorFile | quote }}
