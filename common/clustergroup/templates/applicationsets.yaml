@@ -47,7 +47,7 @@ spec:
         {{- end }}
         {{- if .values }}
           values: |-
-            {{ `{{ "values" }}` }}
+            {{ `{{ values }}` }}
         {{- end }}
           parameters:
             - name: global.hubClusterDomain
