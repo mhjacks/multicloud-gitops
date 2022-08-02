@@ -45,6 +45,15 @@ clusterGroup:
       # repository (we do this using values we have --set in the argo instance). Note that the $ARGOCD_APP_REPO_URL 
       # and _TARGET_REVISION macros don't work in this context because these aren't apps.
       generatorFile: "vault-appset/in-cluster.yaml"
+      # if you need/want to template destination server, set the .destinationURL property. Otherwise the local server
+      # is inferred (using the internal Kubernetes DNS name)
+      # destinationURL: 'https://some.where.else'
+      # 
+      # If you need/want to template the destination namespace, set the destinationNamespace property. Otherwise,
+      # the .namespace property is used, or else the namespace inferred from context if that is not set.
+      #
+      # destinationNamespace: 'other-namespace'
+      #
 #      If not using generatorFile and useGeneratorValues settings above, the generators structure will be passed
 #      directorly through to the manifest. This is how to set a specific repo and a specific branch with a single
 #      file.
