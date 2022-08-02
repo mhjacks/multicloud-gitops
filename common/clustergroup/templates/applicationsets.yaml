@@ -89,6 +89,6 @@ spec:
           #    value: {{ coalesce $.Values.global.localClusterDomain $.Values.global.hubClusterDomain }}
       destination:
         server: {{ coalesce .destinationURL "https://kubernetes.default.svc" }}
-        namespace: {{ coalesce .namespace $namespace }}
+        namespace: {{ coalesce .destinationNamespace .namespace $namespace }}
 {{- end }}
 ---
