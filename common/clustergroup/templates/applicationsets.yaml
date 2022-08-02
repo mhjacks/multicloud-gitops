@@ -40,8 +40,9 @@ spec:
         helm:
           ignoreMissingValueFiles: true
           valueFiles:
-            - "/values-global.yaml"
-            - "/values-{{ $.Values.clusterGroup.name }}.yaml"
+            - "values.yaml"
+          #  - "/values-global.yaml"
+          #  - "/values-{{ $.Values.clusterGroup.name }}.yaml"
         {{- range .extraValueFiles }}
             - {{ . | quote }}
         {{- end }}
