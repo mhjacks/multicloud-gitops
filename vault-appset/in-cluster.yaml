@@ -20,7 +20,7 @@ values: |
       tag: "1.10.3-ubi"
 
   ui:
-    enabled: "true"
+    enabled: true
     serviceType: LoadBalancer
 
   server:
