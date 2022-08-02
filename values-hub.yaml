@@ -24,14 +24,29 @@ clusterGroup:
 
   applicationsets:
     vault-exp:
+      # These settings work the same as in an application: block
+      # name, namespace, project, chart, repoURL, targetRevision.
+      # project seems to be required
       name: vault
       namespace: vault
       project: hub
       chart: vault
       repoURL: https://helm.releases.hashicorp.com
       targetRevision: v0.20.1
+      # This is to avoid grotesque hacks for escaping. This requires the setting of a values: key with overrides
+      # in the generatorFile below.
       useGeneratorValues: true
+      # Specify a single file for the generator. More complex configs are possible by using the generators: setting
+      # below, which is exclusive of setting generatorFile.
+      # This file must have a values: setting for overrides to use the useGeneratorValues setting above.
+      # The reason for separating the settings is so we can infer repoURL and targetRevision from the current gitops
+      # repository (we do this using values we have --set in the argo instance). Note that the $ARGOCD_APP_REPO_URL 
+      # and _TARGET_REVISION macros don't work in this context because these aren't apps.
       generatorFile: "vault-appset/in-cluster.yaml"
+#      If not using generatorFile and useGeneratorValues settings above, the generators structure will be passed
+#      directorly through to the manifest. This is how to set a specific repo and a specific branch with a single
+#      file.
+#
 #      generators:
 #        - git:
 #            revision: test-appset
