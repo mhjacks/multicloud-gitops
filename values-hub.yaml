@@ -22,9 +22,20 @@ clusterGroup:
   - hub
   - config-demo
 
+  applications:
+    acm:
+      name: acm
+      namespace: open-cluster-management
+      project: hub
+      path: common/acm
+      ignoreDifferences:
+      - group: internal.open-cluster-management.io
+        kind: ManagedClusterInfo
+        jsonPointers:
+          - /spec/loggingCA
+
   # Idea suggested by https://softrams.com/insights/external-value-files-in-argo-cd-with-applicationsets/
   # More detail available on the feature at https://argocd-applicationset.readthedocs.io/en/stable/
-  applicationsets:
     vault-exp:
       # These settings work the same as in an application: block
       # name, namespace, project, chart, repoURL, targetRevision.
@@ -65,17 +76,6 @@ clusterGroup:
 #            files:
 #              - path: "vault-appset/in-cluster.yaml"
 
-  applications:
-    acm:
-      name: acm
-      namespace: open-cluster-management
-      project: hub
-      path: common/acm
-      ignoreDifferences:
-      - group: internal.open-cluster-management.io
-        kind: ManagedClusterInfo
-        jsonPointers:
-          - /spec/loggingCA
 
 #    vault:
 #      name: vault
