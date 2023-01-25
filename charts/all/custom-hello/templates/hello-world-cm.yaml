@@ -18,7 +18,13 @@ data:
             <h2>
             Hub Cluster domain is '{{ .Values.global.hubClusterDomain }}' <br>
             Pod is running on Local Cluster Domain '{{ .Values.global.localClusterDomain }}' <br>
+  {{- if .Values.students }}
+  {{- range .Values.students }}
+            Student {{ .studentId }} is {{ .studentName }} <br>
+  {{- end }}
+  {{- else }}
             The pod is running for Student '{{ .Values.studentId }}' <br>
+  {{- end }}
             </h2>
           </body>
       </html>

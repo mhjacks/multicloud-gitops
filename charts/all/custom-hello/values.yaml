@@ -1,6 +1,16 @@
 ---
 global:
   hubClusterDomain: hub.example.com
-  localCluster: local.example.com
+  localClusterDomain: local.example.com
 
 studentId: student42
+
+students:
+  - studentId: student12
+    studentName: Ben Affleck
+
+  - studentId: student13
+    studentName: Matt Damon
+
+  - studentId: student14
+    studentName: Brad Pitt
