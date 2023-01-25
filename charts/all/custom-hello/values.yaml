@@ -1,0 +1,6 @@
+---
+global:
+  hubClusterDomain: hub.example.com
+  localCluster: local.example.com
+
+studentId: student42

@@ -7,7 +7,7 @@ clusterGroup:
   - vault
   - golang-external-secrets
   - config-demo
-  - new-hello
+  - custom-hello
 
   subscriptions:
     acm:
@@ -50,11 +50,11 @@ clusterGroup:
       project: config-demo
       path: charts/all/config-demo
 
-    new-hello:
-      name: new-hello
-      namespace: new-hello
+    custom-hello:
+      name: custom-hello
+      namespace: custom-hello
       project: config-demo
-      path: charts/all/new-hello
+      path: charts/all/custom-hello
 
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
