@@ -22,6 +22,9 @@ clusterGroup:
       namespace: portworx
       channel: stable
       source: certified-operators
+      overrides:
+        - name: "storage.maxStorageNodesPerZone"
+          value: 2
 
   projects:
     - hub
