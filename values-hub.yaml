@@ -22,9 +22,6 @@ clusterGroup:
       namespace: portworx
       channel: stable
       source: certified-operators
-      overrides:
-        - name: "storage.maxStorageNodesPerZone"
-          value: 2
 
   projects:
     - hub
@@ -73,6 +70,9 @@ clusterGroup:
       namespace: portworx
       project: portworx
       path: charts/all/portworx
+      overrides:
+        - name: "storage.maxStorageNodesPerZone"
+          value: 2
 
 
   imperative:
