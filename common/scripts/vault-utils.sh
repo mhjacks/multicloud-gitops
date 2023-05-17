@@ -28,4 +28,4 @@ if [ -z ${TASK} ]; then
 	exit 1
 fi
 
-ansible-playbook -t "${TASK}" -e pattern_name="${PATTERN_NAME}" -e pattern_dir="${PATTERNPATH}" "${PLAYBOOKPATH}/vault/vault.yaml"
+ansible-playbook -vvv -t "${TASK}" -e pattern_name="${PATTERN_NAME}" -e pattern_dir="${PATTERNPATH}" "${PLAYBOOKPATH}/vault/vault.yaml"
