@@ -6,8 +6,6 @@ clusterGroup:
     - open-cluster-management
     - vault
     - golang-external-secrets
-    - config-demo
-    - hello-world
     - portworx
     - portworx-demo
 
@@ -26,8 +24,6 @@ clusterGroup:
 
   projects:
     - hub
-    - config-demo
-    - hello-world
     - portworx
     - portworx-demo
 
