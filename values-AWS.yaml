@@ -24,3 +24,6 @@
 #       # Using 'default' as that exists everywhere
 #       project: default
 #       path: common/letsencrypt
+
+storage:
+  maxStorageNodesPerZone: 2
