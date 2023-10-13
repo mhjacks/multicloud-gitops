@@ -2,6 +2,9 @@ clusterGroup:
   name: hub
   isHubCluster: true
 
+  sharedValueFiles:
+    - '/cluster-overrides/values-{{ .Values.global.clusterPlatform }}.yaml'
+
   namespaces:
     - open-cluster-management
     - vault

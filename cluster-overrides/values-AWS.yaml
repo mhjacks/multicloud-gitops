@@ -6,6 +6,13 @@
 # for all the limitations around it
 
 
+testkey:
+  testParam: testvalue
+  arraytest:
+    - one
+    - two
+    - three
+
 # letsencrypt:
 #   enabled: true
 #   api_endpoint: true
