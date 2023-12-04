@@ -96,12 +96,9 @@ def run(module):
     values_secrets_plaintext = args.get("values_secrets_plaintext", "")
 
     syaml = yaml.safe_load(values_secrets_plaintext)
+
     if syaml is None:
         syaml = {}
-    elif isinstance(syaml, str):
-        module.fail_json("Could not parse values_secrets_plaintext as yaml")
-    else:
-        module.fail_json("Unknown error parsing values_secrets_plaintext")
 
     results["failed"] = False
     results["changed"] = False
