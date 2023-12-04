@@ -55,6 +55,7 @@ import os
 import yaml
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.load_secrets_common import get_version
+from ansible.module_utils.parse_secrets_v3 import ParseSecretsV3
 
 ANSIBLE_METADATA = {
     "metadata_version": "1.2",
@@ -87,7 +88,6 @@ EXAMPLES = """
     values_secrets_plaintext: '{{ <unencrypted content> }}'
 """
 
-
 def run(module):
     """Main ansible module entry point"""
     results = dict(changed=False)
@@ -104,6 +104,9 @@ def run(module):
     results["changed"] = False
     results["syaml"] = syaml
     results["values_secrets_plaintext"] = values_secrets_plaintext
+
+    parsed_secret_obj = ParseSecretsV3(module, syaml)
+    parsed_secrets = parsed_secret_obj.parse()
 
     module.exit_json(**results)
 

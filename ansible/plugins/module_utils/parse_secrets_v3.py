@@ -26,6 +26,7 @@ from ansible.module_utils.load_secrets_common import (
     find_dupes,
     get_ini_value,
     get_version,
+    stringify_dict,
 )
 
 class ParseSecretsV3:
@@ -60,6 +61,12 @@ class ParseSecretsV3:
     def _get_field_ini_file(self, f):
         return f.get("ini_file", None)
 
+    def _get_field_annotations(self, f):
+        return f.get("annotations", {})
+
+    def _get_field_labels(self, f):
+        return f.get("annotations", {})
+
     def _get_field_kind(self, f):
         # value: null will be interpreted with None, so let's just
         # check for the existence of the field, as we use 'value: null' to say
@@ -84,6 +91,21 @@ class ParseSecretsV3:
 
     def _get_field_override(self, f):
         return bool(f.get("override", False))
+
+    def _get_default_namespace(self):
+        return str(self.syaml.get("default_namespace", "validated-patterns-secets"))
+
+    def _get_default_labels(self):
+        return self.syaml.get("default_labels", {})
+
+    def _get_default_annotations(self):
+        return self.syaml.get("default_annotations", {})
+
+    def _get_field_annotations(self, f):
+        return f.get("annotations", {})
+
+    def _get_field_labels(self, f):
+        return f.get("labels", {})
 
     # This function could use some rewriting and it should call a specific validation function
     # for each type (value, path, ini_file)
@@ -196,6 +218,8 @@ class ParseSecretsV3:
             # This checks for the case when vaultPrefixes: is specified but empty
             if vault_prefixes is None or len(vault_prefixes) == 0:
                 return (False, f"Secret {s['name']} has empty vaultPrefixes")
+
+            namespace = s.get("namespace", self.get_default_namespace)
 
             fields = s.get("fields", [])
             if len(fields) == 0:
