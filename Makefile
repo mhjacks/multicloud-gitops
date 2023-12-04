@@ -77,8 +77,40 @@ uninstall: ## runs helm uninstall
 	@oc delete csv -n openshift-operators $(CSV)
 
 .PHONY: load-secrets
-load-secrets: ## loads the secrets into the vault
+load-secrets: ## loads the secrets into the backend determined by values-secret config file
+	common/scripts/process-secrets.sh $(NAME)
+
+.PHONY: load-secrets-kubernetes
+load-secrets-kubernetes: ## loads the secrets into kubernetes (disables detection of backend)
+	common/scripts/load-k8s-secrets.sh $(NAME)
+
+.PHONY: load-secrets-vault
+load-secrets-vault: ## loads the secrets into the vault (disables detection of secret backend)
 	common/scripts/vault-utils.sh push_secrets $(NAME)
+
+.PHONY: secrets-backend-vault
+secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets config
+	common/scripts/set-secret-backend.sh vault
+	common/scripts/manage-secret-app.sh vault present
+	common/scripts/manage-secret-app.sh golang-external-secrets present
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets absent
+	@echo "Secrets backend set to vault, please review changes, commit, and push to activate in the pattern"
+
+.PHONY: secrets-backend-kubernetes
+secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets config
+	common/scripts/set-secret-backend.sh kubernetes
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets present
+	common/scripts/manage-secret-app.sh vault absent
+	common/scripts/manage-secret-app.sh golang-external-secrets present
+	@echo "Secrets backend set to kubernetes, please review changes, commit, and push to activate in the pattern"
+
+.PHONY: secrets-backend-none
+secrets-backend-none: ## Edits values files to remove secrets manager + ESO
+	common/scripts/set-secret-backend.sh none
+	common/scripts/manage-secret-app.sh vault delete
+	common/scripts/manage-secret-app.sh golang-external-secrets delete
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets delete
+	@echo "Secrets backend set to none, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: load-iib
 load-iib: ## CI target to install Index Image Bundles
