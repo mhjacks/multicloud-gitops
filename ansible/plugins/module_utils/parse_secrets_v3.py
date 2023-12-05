@@ -29,6 +29,11 @@ from ansible.module_utils.load_secrets_common import (
     stringify_dict,
 )
 
+def string_dataify(fields):
+    stringdata = {}
+    for f in fields:
+        stringdata[f['name']] = f['value']
+
 class ParseSecretsV3:
     def __init__(self, module, syaml):
         self.module = module
@@ -156,6 +161,7 @@ class ParseSecretsV3:
                 counter += 1
                 total_secrets += 1
 
+            k8s_secret['stringData'] = string_dataify(fields)
             self.kubernetes_secret_objects.append(k8s_secret)
 
         return total_secrets
