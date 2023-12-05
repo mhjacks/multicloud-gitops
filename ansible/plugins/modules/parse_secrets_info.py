@@ -100,13 +100,15 @@ def run(module):
     if syaml is None:
         syaml = {}
 
+    parsed_secret_obj = ParseSecretsV3(module, syaml)
+    parsed_secret_obj.parse()
+
     results["failed"] = False
     results["changed"] = False
     results["syaml"] = syaml
     results["values_secrets_plaintext"] = values_secrets_plaintext
-
-    parsed_secret_obj = ParseSecretsV3(module, syaml)
-    parsed_secrets = parsed_secret_obj.parse()
+    results["parsed_secrets"] = parsed_secret_obj.parsed_secrets
+    results["kubnernetes_secret_objects"] = parsed_secret_obj.kubernetes_secret_objects
 
     module.exit_json(**results)
 

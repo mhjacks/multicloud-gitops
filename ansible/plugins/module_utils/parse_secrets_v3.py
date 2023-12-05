@@ -33,6 +33,8 @@ class ParseSecretsV3:
     def __init__(self, module, syaml):
         self.module = module
         self.syaml = syaml
+        self.parsed_secrets = {}
+        self.kubernetes_secret_objects = []
 
     def _get_backingstore(self):
         """
@@ -93,7 +95,7 @@ class ParseSecretsV3:
         return bool(f.get("override", False))
 
     def _get_default_namespace(self):
-        return str(self.syaml.get("default_namespace", "validated-patterns-secets"))
+        return str(self.syaml.get("default_namespace", "validated-patterns-secrets"))
 
     def _get_default_labels(self):
         return self.syaml.get("default_labels", {})
@@ -106,6 +108,57 @@ class ParseSecretsV3:
 
     def _get_field_labels(self, f):
         return f.get("labels", {})
+
+    def _append_kubernetes_secret(self, secret_obj):
+        self.kubernetes_secret_objects.append(secret_obj)
+
+    def _create_k8s_secret(self, sname, secret_type, namespace, labels, annotations):
+        return {
+            'type': secret_type,
+            'apiVersion': 'v1',
+            'metadata': {
+                'name': sname,
+                'namespace': namespace,
+                'annotations': annotations,
+                'labels': labels,
+            },
+            'stringData': {},
+        }
+    # This does what inject_secrets used to (mostly)
+    def parse(self):
+        #self.store_vault_policies()
+        secrets = self._get_secrets()
+
+        parsed_secrets = {}
+
+        total_secrets = 0  # Counter for all the secrets uploaded
+        for s in secrets:
+            counter = 0  # This counter is to use kv put on first secret and kv patch on latter
+            sname = s.get("name")
+            fields = s.get("fields", [])
+            secret_type = s.get("type", "Opaque")
+            namespace = s.get("namespace", self._get_default_namespace())
+            labels = stringify_dict(s.get("labels", self._get_default_labels()))
+            annotations = stringify_dict(s.get("annotations", self._get_default_annotations()))
+            k8s_secret = self._create_k8s_secret(sname, secret_type, namespace, labels, annotations)
+
+            self.parsed_secrets[sname] = {
+                'name': sname,
+                'fields': {},
+                'type': secret_type,
+                'namespace': namespace,
+                'labels': labels,
+                'annotations': annotations,
+            }
+
+            for i in fields:
+                self._inject_field(sname, i)
+                counter += 1
+                total_secrets += 1
+
+            self.kubernetes_secret_objects.append(k8s_secret)
+
+        return total_secrets
 
     # This function could use some rewriting and it should call a specific validation function
     # for each type (value, path, ini_file)
@@ -156,29 +209,6 @@ class ParseSecretsV3:
             ):
                 return (False, f"Field has non-existing ini_file: {ini_file}")
 
-            if "override" in f:
-                return (
-                    False,
-                    "'override' attribute requires 'onMissingValue' to be set to 'generate'",
-                )
-
-        if on_missing_value in ["generate"]:
-            if value is not None:
-                return (
-                    False,
-                    "Secret has onMissingValue set to 'generate' but has a value set",
-                )
-            if path is not None:
-                return (
-                    False,
-                    "Secret has onMissingValue set to 'generate' but has a path set",
-                )
-            if vault_policy is None:
-                return (
-                    False,
-                    "Secret has no vaultPolicy but onMissingValue is set to 'generate'",
-                )
-
         if on_missing_value in ["prompt"]:
             # When we prompt, the user needs to set one of the following:
             # - value: null # prompt for a secret without a default value
@@ -214,11 +244,6 @@ class ParseSecretsV3:
                     return (False, f"Secret {s['name']} is missing {i}")
             names.append(s["name"])
 
-            vault_prefixes = s.get("vaultPrefixes", ["hub"])
-            # This checks for the case when vaultPrefixes: is specified but empty
-            if vault_prefixes is None or len(vault_prefixes) == 0:
-                return (False, f"Secret {s['name']} has empty vaultPrefixes")
-
             namespace = s.get("namespace", self.get_default_namespace)
 
             fields = s.get("fields", [])
@@ -240,16 +265,6 @@ class ParseSecretsV3:
             return (False, f"You cannot have duplicate secret names: {dupes}")
         return (True, "")
 
-    def inject_vault_policies(self):
-        for name, policy in self._get_vault_policies().items():
-            cmd = (
-                f"echo '{policy}' | oc exec -n {self.namespace} {self.pod} -i -- sh -c "
-                f"'cat - > /tmp/{name}.hcl';"
-                f"oc exec -n {self.namespace} {self.pod} -i -- sh -c 'vault write sys/policies/password/{name} "
-                f" policy=@/tmp/{name}.hcl'"
-            )
-            self._run_command(cmd, attempts=3)
-
     def sanitize_values(self):
         """
         Sanitizes the secrets YAML object version 2.0
@@ -260,13 +275,13 @@ class ParseSecretsV3:
             Nothing: Updates self.syaml(obj) if needed
         """
         v = get_version(self.syaml)
-        if v != "2.0":
-            self.module.fail_json(f"Version is not 2.0: {v}")
+        if v != "3.0":
+            self.module.fail_json(f"Version is not 3.0: {v}")
 
         backing_store = self._get_backingstore()
-        if backing_store != "vault":  # we currently only support vault
+        if backing_store != "kubernetes":  # we currently only support vault
             self.module.fail_json(
-                f"Currently only the 'vault' backingStore is supported: {backing_store}"
+                f"Currently only the 'kubernetes' backingStore is supported: {backing_store}"
             )
 
         (ret, msg) = self._validate_secrets()
@@ -315,47 +330,19 @@ class ParseSecretsV3:
 
         self.module.fail_json("File with wrong onMissingValue")
 
-    def _vault_secret_attr_exists(self, mount, prefix, secret_name, attribute):
-        cmd = (
-            f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
-            f'"vault kv get -mount={mount} -field={attribute} {prefix}/{secret_name}"'
-        )
-        # we ignore stdout and stderr
-        (ret, _, _) = self._run_command(cmd, attempts=1, checkrc=False)
-        if ret == 0:
-            return True
-
-        return False
-
-    def _inject_field(self, secret_name, f, mount, prefixes, first=False):
+    def _inject_field(self, secret_name, f):
         on_missing_value = self._get_field_on_missing_value(f)
         override = self._get_field_override(f)
         kind = self._get_field_kind(f)
-        # If we're generating the password then we just push the secret in the vault directly
-        verb = "put" if first else "patch"
+
         b64 = self._get_field_base64(f)
         if kind in ["value", ""]:
             if on_missing_value == "generate":
-                if kind == "path":
+                if self._get_backingstore() == "kubernetes":
                     self.module.fail_json(
-                        "You cannot have onMissingValue set to 'generate' with a path"
+                        "You cannot have onMissingValue set to 'generate' with the kubernetes backingstore"
                     )
-                vault_policy = f.get("vaultPolicy")
-                gen_cmd = f"vault read -field=password sys/policies/password/{vault_policy}/generate"
-                if b64:
-                    gen_cmd += " | base64 --wrap=0"
-                for prefix in prefixes:
-                    # if the override field is False and the secret attribute exists at the prefix then we just
-                    # skip, as we do not want to overwrite the existing secret
-                    if not override and self._vault_secret_attr_exists(
-                        mount, prefix, secret_name, f["name"]
-                    ):
-                        continue
-                    cmd = (
-                        f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
-                        f"\"{gen_cmd} | vault kv {verb} -mount={mount} {prefix}/{secret_name} {f['name']}=-\""
-                    )
-                    self._run_command(cmd, attempts=3)
+
                 return
 
             # If we're not generating the secret inside the vault directly we either read it from the file ("error")
@@ -363,41 +350,25 @@ class ParseSecretsV3:
             secret = self._get_secret_value(secret_name, f)
             if b64:
                 secret = base64.b64encode(secret.encode()).decode("utf-8")
-            for prefix in prefixes:
-                cmd = (
-                    f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
-                    f"\"vault kv {verb} -mount={mount} {prefix}/{secret_name} {f['name']}='{secret}'\""
-                )
-                self._run_command(cmd, attempts=3)
+
+            self.parsed_secrets[secret_name]['fields'][f['name']] = secret
 
         elif kind == "path":  # path. we upload files
-            # If we're generating the password then we just push the secret in the vault directly
-            verb = "put" if first else "patch"
             path = self._get_file_path(secret_name, f)
-            for prefix in prefixes:
-                if b64:
-                    b64_cmd = "| base64 --wrap=0 "
-                else:
-                    b64_cmd = ""
-                cmd = (
-                    f"cat '{path}' | oc exec -n {self.namespace} {self.pod} -i -- sh -c "
-                    f"'cat - {b64_cmd}> /tmp/vcontent'; "
-                    f"oc exec -n {self.namespace} {self.pod} -i -- sh -c '"
-                    f"vault kv {verb} -mount={mount} {prefix}/{secret_name} {f['name']}=@/tmp/vcontent; "
-                    f"rm /tmp/vcontent'"
-                )
-                self._run_command(cmd, attempts=3)
+            secret = open(path, 'rb').read()
+
+            if b64:
+                secret = base64.b64encode(secret)
+
+            self.parsed_secrets[secret_name][f['name']] = secret
         elif kind == "ini_file":  # ini_file. we parse an ini_file
-            verb = "put" if first else "patch"
             ini_file = os.path.expanduser(f.get("ini_file"))
             ini_section = f.get("ini_section", "default")
             ini_key = f.get("ini_key")
             secret = get_ini_value(ini_file, ini_section, ini_key)
             if b64:
                 secret = base64.b64encode(secret.encode()).decode("utf-8")
-            for prefix in prefixes:
-                cmd = (
-                    f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
-                    f"\"vault kv {verb} -mount={mount} {prefix}/{secret_name} {f['name']}='{secret}'\""
-                )
-                self._run_command(cmd, attempts=3)
+
+            self.parsed_secrets[secret_name]['fields'][f['name']] = secret
+
+        return
