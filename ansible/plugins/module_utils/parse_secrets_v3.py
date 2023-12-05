@@ -360,7 +360,7 @@ class ParseSecretsV3:
             if b64:
                 secret = base64.b64encode(secret)
 
-            self.parsed_secrets[secret_name][f['name']] = secret
+            self.parsed_secrets[secret_name]['fields'][f['name']] = secret
         elif kind == "ini_file":  # ini_file. we parse an ini_file
             ini_file = os.path.expanduser(f.get("ini_file"))
             ini_section = f.get("ini_section", "default")
