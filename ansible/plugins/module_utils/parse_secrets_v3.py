@@ -115,6 +115,7 @@ class ParseSecretsV3:
     def _create_k8s_secret(self, sname, secret_type, namespace, labels, annotations):
         return {
             'type': secret_type,
+            'kind': 'Secret',
             'apiVersion': 'v1',
             'metadata': {
                 'name': sname,

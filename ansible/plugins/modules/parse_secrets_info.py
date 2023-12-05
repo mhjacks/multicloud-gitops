@@ -105,8 +105,8 @@ def run(module):
 
     results["failed"] = False
     results["changed"] = False
-    results["syaml"] = syaml
-    results["values_secrets_plaintext"] = values_secrets_plaintext
+#    results["syaml"] = syaml
+#    results["values_secrets_plaintext"] = values_secrets_plaintext
     results["parsed_secrets"] = parsed_secret_obj.parsed_secrets
     results["kubernetes_secret_objects"] = parsed_secret_obj.kubernetes_secret_objects
 

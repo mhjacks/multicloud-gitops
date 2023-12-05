@@ -1,43 +1,9 @@
 ---
-- name: Vault status check
-  ansible.builtin.include_tasks: vault_status.yaml
-
-# Unfortunately we cannot loop vault_status and just check if the vault is unsealed
-# https://github.com/ansible/proposals/issues/136
-# So here we keep running the 'vault status' command until sealed is set to false
-- name: If the vault is still sealed we need to retry
-  kubernetes.core.k8s_exec:
-    namespace: "{{ vault_ns }}"
-    pod: "{{ vault_pod }}"
-    command: vault status -format=json
-  register: vault_status_json
-  until: "'stdout' in vault_status_json and (not (vault_status_json.stdout | from_json)['sealed'] | bool)"
-  retries: 20
-  delay: 45
-  failed_when: "'stdout_lines' not in vault_status_json"
-
-# This step is not really needed when running make vault-init + load-secrets as
-# everything is sequential
-# It is needed when the vault is unsealed/configured inside the cluster and load-secrets
-# gets run *while* the cronjob configures the vault. I.e. it might be half configured and return
-# errors
-- name: Make sure that the vault auth policy exists
-  kubernetes.core.k8s_exec:
-    namespace: "{{ vault_ns }}"
-    pod: "{{ vault_pod }}"
-    command:
-      sh -c "vault list auth/{{ vault_hub }}/role | grep '{{ vault_hub }}-role'"
-  register: vault_role_cmd
-  until: vault_role_cmd.rc == 0
-  retries: 20
-  delay: 45
-  changed_when: false
-
 # Once V1 support is dropped we can remove the whole secret_template support
-- name: Set secret_template fact
-  no_log: true
-  ansible.builtin.set_fact:
-    secret_template: "{{ pattern_dir }}/values-secret.yaml.template"
+#- name: Set secret_template fact
+#  no_log: true
+#  ansible.builtin.set_fact:
+#    secret_template: "{{ pattern_dir }}/values-secret.yaml.template"
 
 - name: Is a VALUES_SECRET env variable set?
   ansible.builtin.set_fact:
@@ -106,18 +72,16 @@
   when: is_encrypted
   changed_when: false
 
-- name: Loads secrets file into the vault of a cluster
-  no_log: false
-  vault_load_secrets:
-    values_secrets: "{{ found_file }}"
-    check_missing_secrets: false
-    values_secret_template: "{{ secret_template }}"
+- name: Normalize secrets format
+  no_log: true
+  ansible.builtin.set_fact:
+    values_secrets_data: "{{ lookup('file', found_file) | from_yaml }}"
   when: not is_encrypted
+  changed_when: false
 
-- name: Loads secrets file into the vault of a cluster
-  no_log: false
-  vault_load_secrets:
-    values_secrets_plaintext: "{{ values_secret_plaintext.stdout }}"
-    check_missing_secrets: false
-    values_secret_template: "{{ secret_template }}"
+- name: Normalize secrets format
+  no_log: true
+  ansible.builtin.set_fact:
+    values_secrets_data: "{{ values_secret_plaintext.stdout | from_yaml }}"
   when: is_encrypted
+  changed_when: false
