@@ -158,6 +158,11 @@ class ParseSecretsV3:
                 total_secrets += 1
 
             k8s_secret['stringData'] = self.parsed_secrets[sname]['fields']
+
+            # Remove labels/annotations if they are empty
+            for key in [ 'labels', 'annotations' ]:
+                del k8s_secret['metadata'][key]
+
             self.kubernetes_secret_objects.append(k8s_secret)
 
         return total_secrets

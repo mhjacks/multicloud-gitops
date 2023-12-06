@@ -72,15 +72,15 @@
   when: is_encrypted
   changed_when: false
 
-- name: Normalize secrets format
-  no_log: true
+- name: Normalize secrets format (un-encrypted)
+  no_log: false
   ansible.builtin.set_fact:
     values_secrets_data: "{{ lookup('file', found_file) | from_yaml }}"
   when: not is_encrypted
   changed_when: false
 
-- name: Normalize secrets format
-  no_log: true
+- name: Normalize secrets format (encrypted)
+  no_log: false
   ansible.builtin.set_fact:
     values_secrets_data: "{{ values_secret_plaintext.stdout | from_yaml }}"
   when: is_encrypted
