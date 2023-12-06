@@ -4,10 +4,10 @@ clusterGroup:
 
   namespaces:
     - open-cluster-management
-    - vault
     - golang-external-secrets
     - config-demo
     - hello-world
+    - validated-patterns-secrets
 
   subscriptions:
     acm:
@@ -55,17 +55,20 @@ clusterGroup:
         jsonPointers:
           - /spec/loggingCA
 
-    vault:
-      name: vault
-      namespace: vault
-      project: hub
-      path: common/hashicorp-vault
+#    vault:
+#      name: vault
+#      namespace: vault
+#      project: hub
+#      path: common/hashicorp-vault
 
     golang-external-secrets:
       name: golang-external-secrets
       namespace: golang-external-secrets
       project: hub
       path: common/golang-external-secrets
+      overrides:
+        - name: golangExternalSecrets.providerBackend
+          value: "kubernetes"
 
     config-demo:
       name: config-demo
