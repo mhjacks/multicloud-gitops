@@ -75,6 +75,11 @@ clusterGroup:
       namespace: config-demo
       project: config-demo
       path: charts/all/config-demo
+      overrides:
+        - name: secretStore.name
+          value: kubernetes-backend
+        - name: configdemosecret.key
+          value: config-demo
 
     hello-world:
       name: hello-world
