@@ -47,6 +47,7 @@ class ParseSecretsV3:
         self.syaml = syaml
         self.parsed_secrets = {}
         self.kubernetes_secret_objects = []
+        self.vault_policies = {}
 
     def _get_backingstore(self):
         """
@@ -146,9 +147,10 @@ class ParseSecretsV3:
             },
             'stringData': {},
         }
+
     # This does what inject_secrets used to (mostly)
     def parse(self):
-        self.store_vault_policies()
+        self.vault_policies = self._get_vault_policies()
         secrets = self._get_secrets()
 
         parsed_secrets = {}

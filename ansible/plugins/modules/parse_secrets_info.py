@@ -108,6 +108,7 @@ def run(module):
 #    results["syaml"] = syaml
 #    results["values_secrets_plaintext"] = values_secrets_plaintext
     results["parsed_secrets"] = parsed_secret_obj.parsed_secrets
+    results["vault_policies"] = parsed_secret_obj.vault_policies
     results["kubernetes_secret_objects"] = parsed_secret_obj.kubernetes_secret_objects
 
     module.exit_json(**results)
