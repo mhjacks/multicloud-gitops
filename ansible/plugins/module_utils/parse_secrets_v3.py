@@ -29,6 +29,18 @@ from ansible.module_utils.load_secrets_common import (
     stringify_dict,
 )
 
+default_vp_vault_policies = {
+    "validatedPatternDefaultPolicy": (
+        "length=20\n"
+        'rule "charset" { charset = "abcdefghijklmnopqrstuvwxyz" min-chars = 1 }\n'
+        'rule "charset" { charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" min-chars = 1 }\n'
+        'rule "charset" { charset = "0123456789" min-chars = 1 }\n'
+        'rule "charset" { charset = "!@#%^&*" min-chars = 1 }\n'
+    )
+}
+
+default_namespace = 'validated-patterns-secrets'
+
 class ParseSecretsV3:
     def __init__(self, module, syaml):
         self.module = module
@@ -45,6 +57,15 @@ class ParseSecretsV3:
             ret(str): The value of the top-level 'backingStore:' key
         """
         return str(self.syaml.get("backingStore", "vault"))
+
+    def _get_vault_policies(self, enable_default_vp_policies=True):
+        # We start off with the hard-coded default VP policy and add the user-defined ones
+        if enable_default_vp_policies:
+            policies = default_vp_vault_policies.copy()
+        else:
+            policies = {}
+        policies.update(self.syaml.get("vaultPolicies", {}))
+        return policies
 
     def _get_secrets(self):
         return self.syaml.get("secrets", {})
@@ -95,7 +116,7 @@ class ParseSecretsV3:
         return bool(f.get("override", False))
 
     def _get_default_namespace(self):
-        return str(self.syaml.get("default_namespace", "validated-patterns-secrets"))
+        return str(self.syaml.get("default_namespace", default_namespace))
 
     def _get_default_labels(self):
         return self.syaml.get("default_labels", {})
@@ -127,7 +148,7 @@ class ParseSecretsV3:
         }
     # This does what inject_secrets used to (mostly)
     def parse(self):
-        #self.store_vault_policies()
+        self.store_vault_policies()
         secrets = self._get_secrets()
 
         parsed_secrets = {}
@@ -146,6 +167,7 @@ class ParseSecretsV3:
             self.parsed_secrets[sname] = {
                 'name': sname,
                 'fields': {},
+                'vault_policies': {},
                 'type': secret_type,
                 'namespace': namespace,
                 'labels': labels,
@@ -197,6 +219,13 @@ class ParseSecretsV3:
         # Test if base64 is a correct boolean (defaults to False)
         _ = self._get_field_base64(f)
         _ = self._get_field_override(f)
+
+        vault_policy = f.get("vaultPolicy", None)
+        if vault_policy is not None and vault_policy not in self._get_vault_policies():
+            return (
+                False,
+                f"Secret has vaultPolicy set to {vault_policy} but no such policy exists",
+            )
 
         if on_missing_value in ["error"]:
             if (
@@ -251,7 +280,22 @@ class ParseSecretsV3:
                     return (False, f"Secret {s['name']} is missing {i}")
             names.append(s["name"])
 
+            vault_prefixes = s.get("vaultPrefixes", ["hub"])
+            # This checks for the case when vaultPrefixes: is specified but empty
+            if vault_prefixes is None or len(vault_prefixes) == 0:
+                return (False, f"Secret {s['name']} has empty vaultPrefixes")
+
             namespace = s.get("namespace", self.get_default_namespace)
+            if not isinstance(namespace, str):
+                return (False, f"Secret {s['name']} namespace must be a string")
+
+            labels = s.get("labels", {})
+            if not isinstance(labels, dict):
+                return (False, f"Secret {s['name']} labels must be a dictionary")
+
+            annotations = s.get("annotations", {})
+            if not isinstance(annotations, dict):
+                return (False, f"Secret {s['name']} annotations must be a dictionary")
 
             fields = s.get("fields", [])
             if len(fields) == 0:
@@ -282,13 +326,13 @@ class ParseSecretsV3:
             Nothing: Updates self.syaml(obj) if needed
         """
         v = get_version(self.syaml)
-        if v != "3.0":
-            self.module.fail_json(f"Version is not 3.0: {v}")
+        if v not in ["3.0", "2.0"]:
+            self.module.fail_json(f"Version is not 2.0 or 3.0: {v}")
 
         backing_store = self._get_backingstore()
-        if backing_store != "kubernetes":  # we currently only support vault
+        if backing_store not in [ "kubernetes", "vault" ]:  # we currently only support vault
             self.module.fail_json(
-                f"Currently only the 'kubernetes' backingStore is supported: {backing_store}"
+                f"Currently only the 'vault' and 'kubernetes' backingStores are supported: {backing_store}"
             )
 
         (ret, msg) = self._validate_secrets()
@@ -349,7 +393,14 @@ class ParseSecretsV3:
                     self.module.fail_json(
                         "You cannot have onMissingValue set to 'generate' with the kubernetes backingstore"
                     )
+                else:
+                    if kind in [ "path", "ini_file" ]:
+                        self.module.fail_json(
+                            "You cannot have onMissingValue set to 'generate' with a path or ini_file"
+                        )
 
+                vault_policy = f.get("vaultPolicy", "validatedPatternDefaultPolicy")
+                self.parsed_secrets[secret_name]['vault_policies'][f['name']] = vault_policy
                 return
 
             # If we're not generating the secret inside the vault directly we either read it from the file ("error")
