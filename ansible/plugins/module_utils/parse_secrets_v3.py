@@ -20,7 +20,6 @@ Module that implements V2 of the values-secret.yaml spec
 import base64
 import getpass
 import os
-import time
 
 from ansible.module_utils.load_secrets_common import (
     find_dupes,
@@ -39,7 +38,8 @@ default_vp_vault_policies = {
     )
 }
 
-default_namespace = 'validated-patterns-secrets'
+default_namespace = "validated-patterns-secrets"
+
 
 class ParseSecretsV3:
     def __init__(self, module, syaml):
@@ -125,35 +125,27 @@ class ParseSecretsV3:
     def _get_default_annotations(self):
         return self.syaml.get("default_annotations", {})
 
-    def _get_field_annotations(self, f):
-        return f.get("annotations", {})
-
-    def _get_field_labels(self, f):
-        return f.get("labels", {})
-
     def _append_kubernetes_secret(self, secret_obj):
         self.kubernetes_secret_objects.append(secret_obj)
 
     def _create_k8s_secret(self, sname, secret_type, namespace, labels, annotations):
         return {
-            'type': secret_type,
-            'kind': 'Secret',
-            'apiVersion': 'v1',
-            'metadata': {
-                'name': sname,
-                'namespace': namespace,
-                'annotations': annotations,
-                'labels': labels,
+            "type": secret_type,
+            "kind": "Secret",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": sname,
+                "namespace": namespace,
+                "annotations": annotations,
+                "labels": labels,
             },
-            'stringData': {},
+            "stringData": {},
         }
 
     # This does what inject_secrets used to (mostly)
     def parse(self):
         self.vault_policies = self._get_vault_policies()
         secrets = self._get_secrets()
-
-        parsed_secrets = {}
 
         total_secrets = 0  # Counter for all the secrets uploaded
         for s in secrets:
@@ -163,17 +155,22 @@ class ParseSecretsV3:
             secret_type = s.get("type", "Opaque")
             namespace = s.get("namespace", self._get_default_namespace())
             labels = stringify_dict(s.get("labels", self._get_default_labels()))
-            annotations = stringify_dict(s.get("annotations", self._get_default_annotations()))
-            k8s_secret = self._create_k8s_secret(sname, secret_type, namespace, labels, annotations)
+            annotations = stringify_dict(
+                s.get("annotations", self._get_default_annotations())
+            )
+            k8s_secret = self._create_k8s_secret(
+                sname, secret_type, namespace, labels, annotations
+            )
 
             self.parsed_secrets[sname] = {
-                'name': sname,
-                'fields': {},
-                'vault_policies': {},
-                'type': secret_type,
-                'namespace': namespace,
-                'labels': labels,
-                'annotations': annotations,
+                "name": sname,
+                "fields": {},
+                "override": [],
+                "vault_policies": {},
+                "type": secret_type,
+                "namespace": namespace,
+                "labels": labels,
+                "annotations": annotations,
             }
 
             for i in fields:
@@ -181,11 +178,10 @@ class ParseSecretsV3:
                 counter += 1
                 total_secrets += 1
 
-            k8s_secret['stringData'] = self.parsed_secrets[sname]['fields']
+            k8s_secret["stringData"] = self.parsed_secrets[sname]["fields"]
 
-            # Remove labels/annotations if they are empty
-            for key in [ 'labels', 'annotations' ]:
-                del k8s_secret['metadata'][key]
+            # Here is where we used to remove empty label and annotations dicts.
+            # This should cause previously populated labels/annotations to be removed.
 
             self.kubernetes_secret_objects.append(k8s_secret)
 
@@ -287,7 +283,7 @@ class ParseSecretsV3:
             if vault_prefixes is None or len(vault_prefixes) == 0:
                 return (False, f"Secret {s['name']} has empty vaultPrefixes")
 
-            namespace = s.get("namespace", self.get_default_namespace)
+            namespace = s.get("namespace", self._get_default_namespace)
             if not isinstance(namespace, str):
                 return (False, f"Secret {s['name']} namespace must be a string")
 
@@ -328,11 +324,14 @@ class ParseSecretsV3:
             Nothing: Updates self.syaml(obj) if needed
         """
         v = get_version(self.syaml)
-        if v not in ["3.0", "2.0"]:
-            self.module.fail_json(f"Version is not 2.0 or 3.0: {v}")
+        if v not in ["2.0"]:
+            self.module.fail_json(f"Version is not 2.0: {v}")
 
         backing_store = self._get_backingstore()
-        if backing_store not in [ "kubernetes", "vault" ]:  # we currently only support vault
+        if backing_store not in [
+            "kubernetes",
+            "vault",
+        ]:  # we currently only support vault
             self.module.fail_json(
                 f"Currently only the 'vault' and 'kubernetes' backingStores are supported: {backing_store}"
             )
@@ -396,13 +395,19 @@ class ParseSecretsV3:
                         "You cannot have onMissingValue set to 'generate' with the kubernetes backingstore"
                     )
                 else:
-                    if kind in [ "path", "ini_file" ]:
+                    if kind in ["path", "ini_file"]:
                         self.module.fail_json(
                             "You cannot have onMissingValue set to 'generate' with a path or ini_file"
                         )
 
                 vault_policy = f.get("vaultPolicy", "validatedPatternDefaultPolicy")
-                self.parsed_secrets[secret_name]['vault_policies'][f['name']] = vault_policy
+
+                if override:
+                    self.parsed_secrets[secret_name]["override"].append(f["name"])
+
+                self.parsed_secrets[secret_name]["vault_policies"][
+                    f["name"]
+                ] = vault_policy
                 return
 
             # If we're not generating the secret inside the vault directly we either read it from the file ("error")
@@ -411,16 +416,16 @@ class ParseSecretsV3:
             if b64:
                 secret = base64.b64encode(secret.encode()).decode("utf-8")
 
-            self.parsed_secrets[secret_name]['fields'][f['name']] = secret
+            self.parsed_secrets[secret_name]["fields"][f["name"]] = secret
 
         elif kind == "path":  # path. we upload files
             path = self._get_file_path(secret_name, f)
-            secret = open(path, 'rb').read()
+            secret = open(path, "rb").read()
 
             if b64:
                 secret = base64.b64encode(secret)
 
-            self.parsed_secrets[secret_name]['fields'][f['name']] = secret
+            self.parsed_secrets[secret_name]["fields"][f["name"]] = secret
         elif kind == "ini_file":  # ini_file. we parse an ini_file
             ini_file = os.path.expanduser(f.get("ini_file"))
             ini_section = f.get("ini_section", "default")
@@ -429,6 +434,6 @@ class ParseSecretsV3:
             if b64:
                 secret = base64.b64encode(secret.encode()).decode("utf-8")
 
-            self.parsed_secrets[secret_name]['fields'][f['name']] = secret
+            self.parsed_secrets[secret_name]["fields"][f["name"]] = secret
 
         return

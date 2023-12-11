@@ -50,11 +50,8 @@ files.region2:
   testbar: ~/ca.crt
 """
 
-import os
-
 import yaml
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.load_secrets_common import get_version
 from ansible.module_utils.parse_secrets_v3 import ParseSecretsV3
 
 ANSIBLE_METADATA = {
@@ -70,7 +67,11 @@ short_description: Parses a Validated Patterns Secrets file for later loading
 version_added: "2.50"
 author: "Martin Jackson"
 description:
-  - Takes a values-secret.yaml file, parses and returns values for secrets loading. The goal here is to do all the work of reading and interpreting the file and resolving the content pointers (that is, creating content where it is given) such that that content is then available for secrets vaults to load. It does not attempt to load the content or interpret the content beyond the conventions of the file format. (So, it knows how to retrieve ini-keys, about paths, and about base64 but leaves interaction with backends to backend-specific code.
+  - Takes a values-secret.yaml file, parses and returns values for secrets loading. The goal here is to do all the
+    work of reading and interpreting the file and resolving the content pointers (that is, creating content where it
+    is given) such that that content is then available for secrets vaults to load. It does not attempt to load the
+    content or interpret the content beyond the conventions of the file format. (So, it knows how to retrieve
+    ini-keys, about paths, and about base64 but leaves interaction with backends to backend-specific code.
 options:
   values_secrets_plaintext:
     description:
@@ -87,6 +88,7 @@ EXAMPLES = """
   parse_secrets_info:
     values_secrets_plaintext: '{{ <unencrypted content> }}'
 """
+
 
 def run(module):
     """Main ansible module entry point"""
@@ -111,11 +113,12 @@ def run(module):
     results["kubernetes_secret_objects"] = parsed_secret_obj.kubernetes_secret_objects
 
     results["vault_secret_objects"] = {
-            'vault_policies': parsed_secret_obj.vault_policies,
-            'parsed_secrets': parsed_secret_obj.parsed_secrets,
-        }
+        "vault_policies": parsed_secret_obj.vault_policies,
+        "parsed_secrets": parsed_secret_obj.parsed_secrets,
+    }
 
     module.exit_json(**results)
+
 
 def main():
     """Main entry point where the AnsibleModule class is instantiated"""

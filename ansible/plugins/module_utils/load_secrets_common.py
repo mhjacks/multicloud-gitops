@@ -103,6 +103,7 @@ def get_ini_value(inifile, inisection, inikey):
     config.read(inifile)
     return config.get(inisection, inikey, fallback=None)
 
+
 def stringify_dict(input_dict):
     """
     Return a dict whose keys and values are all co-erced to strings, for creating labels and annotations in the
@@ -117,7 +118,7 @@ def stringify_dict(input_dict):
     """
     output_dict = {}
 
-    for (key, value) in input_dict.items():
+    for key, value in input_dict.items():
         output_dict[str(key)] = str(value)
 
     return output_dict
