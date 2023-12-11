@@ -1,7 +1,5 @@
 ---
 golangExternalSecrets:
-  providerBackend: "vault"
-
   rbac:
     rolename: "hub-role"
 
@@ -30,6 +28,9 @@ golangExternalSecrets:
 global:
   hubClusterDomain: hub.example.com
   clusterDomain: foo.example.com
+
+  secretStore:
+    backend: "vault"
 
 clusterGroup:
   isHubCluster: true
