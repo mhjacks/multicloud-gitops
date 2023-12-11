@@ -172,7 +172,7 @@ def run(module):
         module.fail_json("Both values_secrets and values_secrets_plaintext are unset")
 
     version = get_version(syaml)
-    if version in ["2.0", "3.0"]:
+    if version == "2.0":
         secret_obj = LoadSecretsV2(module, syaml, namespace, pod)
     elif version == "1.0":
         secret_obj = LoadSecretsV1(
