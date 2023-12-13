@@ -77,6 +77,24 @@ load-secrets-kubernetes: ## loads the secrets into kubernetes (disables detectio
 load-secrets-vault: ## loads the secrets into the vault (disables detection of secret backend)
 	common/scripts/vault-utils.sh push_secrets $(NAME)
 
+.PHONY: secrets-backend-vault
+secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets config
+	yq -i '.global.secretStore.backend = "vault"' values-global.yaml
+	common/scripts/manage-app.sh vault add
+	common/scripts/manage-app.sh golang-external-secrets add
+
+.PHONY: secrets-backend-kubernetes
+secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets config
+	yq -i '.global.secretStore.backend = "kubernetes"' values-global.yaml
+	common/scripts/manage-app.sh vault delete
+	common/scripts/manage-app.sh golang-external-secrets add
+
+.PHONY: secrets-backend-none
+secrets-backend-none: ## Edits values files to remove secrets manager + ESO
+	yq -i '.global.secretStore.backend = "none"' values-global.yaml
+	common/scripts/manage-app.sh vault delete
+	common/scripts/manage-app.sh golang-external-secrets delete
+
 .PHONY: load-iib
 load-iib: ## CI target to install Index Image Bundles
 	@set -e; if [ x$(INDEX_IMAGES) != x ]; then \
