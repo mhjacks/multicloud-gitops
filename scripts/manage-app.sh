@@ -27,12 +27,7 @@ esac
 
 case "$OP" in
     "add")
-
-        RES=$(yq ".clusterGroup.namespaces[] | select(. == \"$NAMESPACE\")" "$MAIN_CLUSTERGROUP_FILE" 2>/dev/null)
-        if [ -z "$RES" ]; then
-            echo "Namespace $NAMESPACE not found, adding"
-            yq -i ".clusterGroup.namespaces += [ \"$NAMESPACE\" ]" "$MAIN_CLUSTERGROUP_FILE"
-        fi
+        common/scripts/manage-namespace.sh "$NAMESPACE" "$OP"
 
         RES=$(yq ".clusterGroup.applications[] | select(.path == \"$CHART_LOCATION\")" "$MAIN_CLUSTERGROUP_FILE" 2>/dev/null)
         if [ -z "$RES" ]; then
@@ -41,8 +36,7 @@ case "$OP" in
         fi
     ;;
     "delete")
-        echo "Removing namespace $NAMESPACE"
-        yq -i "del(.clusterGroup.namespaces[] | select(. == \"$NAMESPACE\"))" "$MAIN_CLUSTERGROUP_FILE"
+        common/scripts/manage-namespace.sh "$NAMESPACE" "$OP"
         echo "Removing application wth chart location $CHART_LOCATION"
         yq -i "del(.clusterGroup.applications[] | select(.path == \"$CHART_LOCATION\"))" "$MAIN_CLUSTERGROUP_FILE"
     ;;

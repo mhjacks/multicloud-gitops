@@ -87,6 +87,7 @@ secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets co
 .PHONY: secrets-backend-kubernetes
 secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets config
 	yq -i '.global.secretStore.backend = "kubernetes"' values-global.yaml
+	common/scripts/manage-namespace.sh validated-patterns-secrets add
 	common/scripts/manage-app.sh vault delete
 	common/scripts/manage-app.sh golang-external-secrets add
 	@echo "Secrets backend set to kubernetes, please review changes, commit, and push to activate in the pattern"
