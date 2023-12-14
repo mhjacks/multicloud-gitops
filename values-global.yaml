@@ -6,7 +6,7 @@ global:
     syncPolicy: Automatic
     installPlanApproval: Automatic
   secretStore:
-    backend: vault
+    backend: kubernetes
 main:
   clusterGroupName: hub
   multiSourceConfig:
