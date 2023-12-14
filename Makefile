@@ -82,18 +82,21 @@ secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets co
 	yq -i '.global.secretStore.backend = "vault"' values-global.yaml
 	common/scripts/manage-app.sh vault add
 	common/scripts/manage-app.sh golang-external-secrets add
+	@echo "Secrets backend set to vault, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-kubernetes
 secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets config
 	yq -i '.global.secretStore.backend = "kubernetes"' values-global.yaml
 	common/scripts/manage-app.sh vault delete
 	common/scripts/manage-app.sh golang-external-secrets add
+	@echo "Secrets backend set to kubernetes, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-none
 secrets-backend-none: ## Edits values files to remove secrets manager + ESO
 	yq -i '.global.secretStore.backend = "none"' values-global.yaml
 	common/scripts/manage-app.sh vault delete
 	common/scripts/manage-app.sh golang-external-secrets delete
+	@echo "Secrets backend set to none, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: load-iib
 load-iib: ## CI target to install Index Image Bundles
