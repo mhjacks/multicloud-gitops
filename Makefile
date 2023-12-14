@@ -80,17 +80,17 @@ load-secrets-vault: ## loads the secrets into the vault (disables detection of s
 .PHONY: secrets-backend-vault
 secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets config
 	common/scripts/set-secret-backend.sh vault
-	common/scripts/manage-secret-app.sh vault add
-	common/scripts/manage-secret-app.sh golang-external-secrets add
-	common/scripts/manage-secret-namespace.sh validated-patterns-secrets delete
+	common/scripts/manage-secret-app.sh vault present
+	common/scripts/manage-secret-app.sh golang-external-secrets present
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets absent
 	@echo "Secrets backend set to vault, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-kubernetes
 secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets config
 	common/scripts/set-secret-backend.sh kubernetes
-	common/scripts/manage-secret-namespace.sh validated-patterns-secrets add
-	common/scripts/manage-secret-app.sh vault delete
-	common/scripts/manage-secret-app.sh golang-external-secrets add
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets present
+	common/scripts/manage-secret-app.sh vault absent
+	common/scripts/manage-secret-app.sh golang-external-secrets present
 	@echo "Secrets backend set to kubernetes, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-none
