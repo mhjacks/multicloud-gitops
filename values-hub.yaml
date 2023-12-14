@@ -6,7 +6,6 @@ clusterGroup:
     - golang-external-secrets
     - config-demo
     - hello-world
-    - validated-patterns-secrets
     - vault
   subscriptions:
     acm:
