@@ -240,7 +240,7 @@ data:
         clusterRoleName: imperative-cluster-role
         clusterRoleYaml: ""
         cronJobName: imperative-cronjob
-        image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:latest
+        image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest
         imagePullPolicy: Always
         insecureUnsealVaultInsideClusterSchedule: '*/5 * * * *'
         jobName: imperative-job
@@ -342,6 +342,8 @@ data:
         useCSV: false
       pattern: mypattern
       repoURL: https://github.com/pattern-clone/mypattern
+      secretStore:
+        backend: vault
       targetRevision: main
     main:
       clusterGroupName: hub
@@ -510,7 +512,7 @@ spec:
             # git init happens in /git/repo so that we can set the folder to 0770 permissions
             # reason for that is ansible refuses to create temporary folders in there            
             - name: git-init
-              image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:latest
+              image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest
               imagePullPolicy: Always
               env:
                 - name: HOME
@@ -523,7 +525,7 @@ spec:
               - name: git
                 mountPath: "/git"
             - name: test
-              image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:latest
+              image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest
               imagePullPolicy: Always
               env:
                 - name: HOME
@@ -546,7 +548,7 @@ spec:
                   subPath: values.yaml
           containers:            
             - name: "done"
-              image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:latest
+              image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest
               imagePullPolicy: Always
               command:
                 - 'sh'
@@ -584,7 +586,7 @@ spec:
             # git init happens in /git/repo so that we can set the folder to 0770 permissions
             # reason for that is ansible refuses to create temporary folders in there            
             - name: git-init
-              image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:latest
+              image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest
               imagePullPolicy: Always
               env:
                 - name: HOME
@@ -597,7 +599,7 @@ spec:
               - name: git
                 mountPath: "/git"
             - name: unseal-playbook
-              image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:latest
+              image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest
               imagePullPolicy: Always
               env:
                 - name: HOME
@@ -622,7 +624,7 @@ spec:
                   subPath: values.yaml
           containers:            
             - name: "done"
-              image: registry.redhat.io/ansible-automation-platform-23/ee-supported-rhel8:latest
+              image: registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel9:latest
               imagePullPolicy: Always
               command:
                 - 'sh'
