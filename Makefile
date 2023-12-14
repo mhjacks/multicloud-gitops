@@ -79,24 +79,26 @@ load-secrets-vault: ## loads the secrets into the vault (disables detection of s
 
 .PHONY: secrets-backend-vault
 secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets config
-	yq -i '.global.secretStore.backend = "vault"' values-global.yaml
-	common/scripts/manage-app.sh vault add
-	common/scripts/manage-app.sh golang-external-secrets add
+	common/scripts/set-secret-backend.sh vault
+	common/scripts/manage-secret-app.sh vault add
+	common/scripts/manage-secret-app.sh golang-external-secrets add
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets delete
 	@echo "Secrets backend set to vault, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-kubernetes
 secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets config
-	yq -i '.global.secretStore.backend = "kubernetes"' values-global.yaml
-	common/scripts/manage-namespace.sh validated-patterns-secrets add
-	common/scripts/manage-app.sh vault delete
-	common/scripts/manage-app.sh golang-external-secrets add
+	common/scripts/set-secret-backend.sh kubernetes
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets add
+	common/scripts/manage-secret-app.sh vault delete
+	common/scripts/manage-secret-app.sh golang-external-secrets add
 	@echo "Secrets backend set to kubernetes, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-none
 secrets-backend-none: ## Edits values files to remove secrets manager + ESO
-	yq -i '.global.secretStore.backend = "none"' values-global.yaml
-	common/scripts/manage-app.sh vault delete
-	common/scripts/manage-app.sh golang-external-secrets delete
+	common/scripts/set-secret-backend.sh none
+	common/scripts/manage-secret-app.sh vault delete
+	common/scripts/manage-secret-app.sh golang-external-secrets delete
+	common/scripts/manage-secret-namespace.sh validated-patterns-secrets delete
 	@echo "Secrets backend set to none, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: load-iib

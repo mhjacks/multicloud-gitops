@@ -27,7 +27,7 @@ esac
 
 case "$OP" in
     "add")
-        common/scripts/manage-namespace.sh "$NAMESPACE" "$OP"
+        common/scripts/manage-secret-namespace.sh "$NAMESPACE" "$OP"
 
         RES=$(yq ".clusterGroup.applications[] | select(.path == \"$CHART_LOCATION\")" "$MAIN_CLUSTERGROUP_FILE" 2>/dev/null)
         if [ -z "$RES" ]; then
@@ -36,7 +36,7 @@ case "$OP" in
         fi
     ;;
     "delete")
-        common/scripts/manage-namespace.sh "$NAMESPACE" "$OP"
+        common/scripts/manage-secret-namespace.sh "$NAMESPACE" "$OP"
         echo "Removing application wth chart location $CHART_LOCATION"
         yq -i "del(.clusterGroup.applications[] | select(.path == \"$CHART_LOCATION\"))" "$MAIN_CLUSTERGROUP_FILE"
     ;;
