@@ -78,6 +78,12 @@ options:
       - The unencrypted content of the values-secrets file
     required: true
     type: str
+  secrets_backing_store:
+    description:
+      - The secrets backing store that will be used for parsed secrets (i.e. vault, kubernetes, none)
+    required: false
+    default: vault
+    type: str
 """
 
 RETURN = """
