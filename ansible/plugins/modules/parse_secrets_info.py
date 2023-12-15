@@ -87,6 +87,7 @@ EXAMPLES = """
 - name: Loads secrets file into the vault of a cluster
   parse_secrets_info:
     values_secrets_plaintext: '{{ <unencrypted content> }}'
+    secrets_backing_store: '{{ <string }}'
 """
 
 
@@ -96,13 +97,14 @@ def run(module):
 
     args = module.params
     values_secrets_plaintext = args.get("values_secrets_plaintext", "")
+    secrets_backing_store = args.get("secrets_backing_store", "vault")
 
     syaml = yaml.safe_load(values_secrets_plaintext)
 
     if syaml is None:
         syaml = {}
 
-    parsed_secret_obj = ParseSecretsV3(module, syaml)
+    parsed_secret_obj = ParseSecretsV3(module, syaml, secrets_backing_store)
     parsed_secret_obj.parse()
 
     results["failed"] = False

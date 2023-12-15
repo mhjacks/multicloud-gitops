@@ -42,22 +42,38 @@ default_namespace = "validated-patterns-secrets"
 
 
 class ParseSecretsV3:
-    def __init__(self, module, syaml):
+    def __init__(self, module, syaml, secrets_backing_store):
         self.module = module
         self.syaml = syaml
+        self.secrets_backing_store = str(secrets_backing_store)
         self.parsed_secrets = {}
         self.kubernetes_secret_objects = []
         self.vault_policies = {}
 
     def _get_backingstore(self):
         """
-        Return the backingStore: of the parsed yaml object. If it does not exist
-        return 'vault'
+        Backing store is now influenced by the caller more than the file. Setting
+        Return the backingStore: of the parsed yaml object. In most cases the file
+        key was not set anyway - since vault was the only supported option. Since
+        we are introducing new options now, this method of defining behavior is
+        deprecated, but if the file key is included it must match the option defined
+        by values-global in the pattern, or there is an error. The default remains
+        'vault' if the key is unspecified.
 
         Returns:
             ret(str): The value of the top-level 'backingStore:' key
         """
-        return str(self.syaml.get("backingStore", "vault"))
+        file_backing_store = str(self.syaml.get("backingStore", "unset"))
+        if file_backing_store == "unset":
+            pass
+        else:
+            if file_backing_store != self.secrets_backing_store:
+                self.module.fail_json(
+                    f"Secrets file specifies '{file_backing_store}' backend but pattern config "
+                    "specifies '{self.secrets_backing_store}'."
+                )
+
+        return self.secrets_backing_store
 
     def _get_vault_policies(self, enable_default_vp_policies=True):
         # We start off with the hard-coded default VP policy and add the user-defined ones
@@ -390,9 +406,9 @@ class ParseSecretsV3:
         b64 = self._get_field_base64(f)
         if kind in ["value", ""]:
             if on_missing_value == "generate":
-                if self._get_backingstore() == "kubernetes":
+                if self._get_backingstore() != "vault":
                     self.module.fail_json(
-                        "You cannot have onMissingValue set to 'generate' with the kubernetes backingstore"
+                        "You cannot have onMissingValue set to 'generate' unless using vault backingstore"
                     )
                 else:
                     if kind in ["path", "ini_file"]:
