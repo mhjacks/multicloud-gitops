@@ -118,7 +118,10 @@ class ParseSecretsV3:
                 found.append(i)
 
         if len(found) > 1:  # you can only have one of value, path and ini_file
-            self.module.fail_json(f"Both '{found[0]}' and '{found[1]}' cannot be used")
+            self.module.fail_json(
+                f"Both '{found[0]}' and '{found[1]}' cannot be used "
+                f"in field {f['name']}"
+            )
 
         if len(found) == 0:
             return ""
@@ -411,12 +414,13 @@ class ParseSecretsV3:
                 if self._get_backingstore() != "vault":
                     self.module.fail_json(
                         "You cannot have onMissingValue set to 'generate' unless using vault backingstore "
-                        f"for secret {secret_name}/field {f['name']}"
+                        f"for secret {secret_name} field {f['name']}"
                     )
                 else:
                     if kind in ["path", "ini_file"]:
                         self.module.fail_json(
                             "You cannot have onMissingValue set to 'generate' with a path or ini_file"
+                            f" for secret {secret_name} field {f['name']}"
                         )
 
                 vault_policy = f.get("vaultPolicy", "validatedPatternDefaultPolicy")
