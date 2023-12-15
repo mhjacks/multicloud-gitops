@@ -410,7 +410,8 @@ class ParseSecretsV3:
             if on_missing_value == "generate":
                 if self._get_backingstore() != "vault":
                     self.module.fail_json(
-                        "You cannot have onMissingValue set to 'generate' unless using vault backingstore"
+                        "You cannot have onMissingValue set to 'generate' unless using vault backingstore "
+                        f"for secret {secret_name}/field {f['name']}"
                     )
                 else:
                     if kind in ["path", "ini_file"]:
