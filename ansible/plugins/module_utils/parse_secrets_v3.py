@@ -64,18 +64,17 @@ class ParseSecretsV3:
             ret(str): The value of the top-level 'backingStore:' key
         """
         file_backing_store = str(self.syaml.get("backingStore", "unset"))
-        object_backing_store = self.secrets_backing_store
 
         if file_backing_store == "unset":
             pass
         else:
-            if file_backing_store != object_backing_store:
+            if file_backing_store != self.secrets_backing_store:
                 self.module.fail_json(
                     f"Secrets file specifies '{file_backing_store}' backend but pattern config "
-                    "specifies '{object_backing_store}'."
+                    f"specifies '{self.secrets_backing_store}'."
                 )
 
-        return object_backing_store
+        return self.secrets_backing_store
 
     def _get_vault_policies(self, enable_default_vp_policies=True):
         # We start off with the hard-coded default VP policy and add the user-defined ones
