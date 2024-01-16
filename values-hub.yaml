@@ -3,10 +3,8 @@ clusterGroup:
   isHubCluster: true
   namespaces:
     - open-cluster-management
-    - golang-external-secrets
     - config-demo
     - hello-world
-    - vault
   subscriptions:
     acm:
       name: advanced-cluster-management
@@ -53,14 +51,6 @@ clusterGroup:
             #      namespace: vault
             #      project: hub
             #      path: common/hashicorp-vault
-    golang-external-secrets:
-      name: golang-external-secrets
-      namespace: golang-external-secrets
-      project: hub
-      path: common/golang-external-secrets
-      overrides:
-        - name: golangExternalSecrets.providerBackend
-          value: "kubernetes"
     config-demo:
       name: config-demo
       namespace: config-demo
@@ -76,11 +66,6 @@ clusterGroup:
       namespace: hello-world
       project: hello-world
       path: charts/all/hello-world
-    vault:
-      name: vault
-      namespace: vault
-      project: hub
-      path: common/hashicorp-vault
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
