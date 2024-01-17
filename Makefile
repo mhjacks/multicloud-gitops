@@ -86,7 +86,7 @@ secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets co
 	common/scripts/manage-secret-app.sh vault present
 	common/scripts/manage-secret-app.sh golang-external-secrets present
 	common/scripts/manage-secret-namespace.sh validated-patterns-secrets absent
-	@echo "Secrets backend set to vault, please review changes, commit, and push to activate in the pattern"
+	@git diff --exit-code || echo "Secrets backend set to vault, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-kubernetes
 secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets config
@@ -94,7 +94,7 @@ secrets-backend-kubernetes: ## Edits values file to use Kubernetes+ESO secrets c
 	common/scripts/manage-secret-namespace.sh validated-patterns-secrets present
 	common/scripts/manage-secret-app.sh vault absent
 	common/scripts/manage-secret-app.sh golang-external-secrets present
-	@echo "Secrets backend set to kubernetes, please review changes, commit, and push to activate in the pattern"
+	@git diff --exit-code || echo "Secrets backend set to kubernetes, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: secrets-backend-none
 secrets-backend-none: ## Edits values files to remove secrets manager + ESO
@@ -102,7 +102,7 @@ secrets-backend-none: ## Edits values files to remove secrets manager + ESO
 	common/scripts/manage-secret-app.sh vault absent
 	common/scripts/manage-secret-app.sh golang-external-secrets absent
 	common/scripts/manage-secret-namespace.sh validated-patterns-secrets absent
-	@echo "Secrets backend set to none, please review changes, commit, and push to activate in the pattern"
+	@git diff --exit-code || echo "Secrets backend set to none, please review changes, commit, and push to activate in the pattern"
 
 .PHONY: load-iib
 load-iib: ## CI target to install Index Image Bundles
