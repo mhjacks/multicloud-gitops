@@ -51,12 +51,10 @@ files.region2:
 """
 
 import os
+import time
 
 import yaml
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.load_secrets_common import get_version
-from ansible.module_utils.load_secrets_v1 import LoadSecretsV1
-from ansible.module_utils.load_secrets_v2 import LoadSecretsV2
 
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
@@ -116,6 +114,66 @@ EXAMPLES = """
 """
 
 
+class VaultSecretLoader:
+    def __init__(
+        self,
+        module,
+        parsed_secrets,
+        vault_policies,
+        namespace,
+        pod,
+        check_missing_secrets,
+    ):
+        self.module = module
+        self.parsed_secrets = parsed_secrets
+        self.vault_policies = vault_policies
+        self.namespace = namespace
+        self.pod = pod
+        self.check_missing_secrets = check_missing_secrets
+
+    def _run_command(self, command, attempts=1, sleep=3, checkrc=True):
+        """
+        Runs a command on the host ansible is running on. A failing command
+        will raise an exception in this function directly (due to check=True)
+
+        Parameters:
+          command(str): The command to be run.
+          attempts(int): Number of times to retry in case of Error (defaults to 1)
+          sleep(int): Number of seconds to wait in between retry attempts (defaults to 3s)
+
+        Returns:
+          ret(subprocess.CompletedProcess): The return value from run()
+        """
+        for attempt in range(attempts):
+            ret = self.module.run_command(
+                command,
+                check_rc=checkrc,
+                use_unsafe_shell=True,
+                environ_update=os.environ.copy(),
+            )
+            if ret[0] == 0:
+                return ret
+            if attempt >= attempts - 1:
+                return ret
+            time.sleep(sleep)
+
+    def load_vault(self):
+        injected_secret_count = 0
+
+        self.inject_vault_policies()
+
+        for secret_name, secret in self.parsed_secrets.items():
+            pass
+
+        return injected_secret_count
+
+    def inject_secret(self, secret_name, secret):
+        pass
+
+    def inject_vault_policies(self):
+        pass
+
+
 def run(module):
     """Main ansible module entry point"""
     results = dict(changed=False)
@@ -128,54 +186,16 @@ def run(module):
     pod = args.get("pod", "vault-0")
     check_missing_secrets = args.get("check_missing_secrets")
 
-    nr_secrets = load_vault(vault_policies, parsed_secrets, namespace, pod,
-        check_missing_secrets)
+    loader = VaultSecretLoader(
+        module, parsed_secrets, vault_policies, namespace, pod, check_missing_secrets
+    )
+
+    nr_secrets = loader.load_vault()
 
     results["failed"] = False
     results["changed"] = True
     results["msg"] = f"{nr_secrets} secrets injected"
     module.exit_json(**results)
-
-def _run_command(command, attempts=1, sleep=3, checkrc=True): # W: Either all return statements in a functi…
-    """
-    Runs a command on the host ansible is running on. A failing command
-    will raise an exception in this function directly (due to check=True)
-
-    Parameters:
-      command(str): The command to be run.
-      attempts(int): Number of times to retry in case of Error (defaults to 1)
-      sleep(int): Number of seconds to wait in between retry attempts (defaults to 3s)
-
-    Returns:
-      ret(subprocess.CompletedProcess): The return value from run()
-    """
-    for attempt in range(attempts):
-      ret = self.module.run_command(
-          command,
-          check_rc=checkrc,
-          use_unsafe_shell=True,
-          environ_update=os.environ.copy(),
-      )
-      if ret[0] == 0:
-          return ret
-      if attempt >= attempts - 1:
-          return ret
-      time.sleep(sleep)
-
-def load_vault(vault_policies, parsed_secrets, namespace="vault", pod="vault-0", check_missing_secrets=False):
-    injected_secret_count = 0
-
-    inject_vault_policies(vault_policies, namespace, pod)
-
-    for (secret_name, secret) in parsed_secrets.items():
-
-    return injected_secret_count
-
-def inject_secret(secret_name, secret):
-    pass
-
-def inject_vault_policies(vault_policies, namespace, pod):
-    pass
 
 
 def main():
