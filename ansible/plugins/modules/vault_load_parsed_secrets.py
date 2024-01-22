@@ -171,7 +171,14 @@ class VaultSecretLoader:
         pass
 
     def inject_vault_policies(self):
-        pass
+        for name, policy in self.vault_policies.items():
+            cmd = (
+                f"echo '{policy}' | oc exec -n {self.namespace} {self.pod} -i -- sh -c "
+                f"'cat - > /tmp/{name}.hcl';"
+                f"oc exec -n {self.namespace} {self.pod} -i -- sh -c 'vault write sys/policies/password/{name} "
+                f" policy=@/tmp/{name}.hcl'"
+            )
+            self._run_command(cmd, attempts=3)
 
 
 def run(module):
