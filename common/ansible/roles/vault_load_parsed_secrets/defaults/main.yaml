@@ -1,0 +1,3 @@
+---
+vault_ns: vault
+vault_pod: vault-0
