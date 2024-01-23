@@ -224,13 +224,32 @@ class VaultSecretLoader:
                     f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
                     f'"{gen_cmd} | vault kv {verb} -mount={mount} {prefix}/{secret_name} {fieldname}=-"'
                 )
-                print(cmd)
                 self._run_command(cmd, attempts=3)
             return
 
-            if path:
+        if path:
+            for prefix in prefixes:
                 if b64:
-                    return
+                    b64_cmd = "| base64 --wrap=0"
+                else:
+                    b64_cmd = ""
+                cmd = (
+                    f"cat '{path}' | oc exec -n {self.namespace} {self.pod} -i -- sh -c "
+                    f"'cat - {b64_cmd}> /tmp/vcontent'; "
+                    f"oc exec -n {self.namespace} {self.pod} -i -- sh -c '"
+                    f"vault kv {verb} -mount={mount} {prefix}/{secret_name} {fieldname}=@/tmp/vcontent; "
+                    f"rm /tmp/vcontent'"
+                )
+                self._run_command(cmd, attempts=3)
+            return
+
+        for prefix in prefixes:
+            cmd = (
+                f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
+                f"\"vault kv {verb} -mount={mount} {prefix}/{secret_name} {fieldname}='{fieldvalue}'\""
+            )
+            self._run_command(cmd, attempts=3)
+        return
 
     def inject_secret(self, secret_name, secret, counter):
         mount = secret.get("vault_mount", "secret")
