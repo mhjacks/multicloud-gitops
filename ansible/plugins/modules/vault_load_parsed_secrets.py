@@ -255,13 +255,13 @@ class VaultSecretLoader:
         mount = secret.get("vault_mount", "secret")
         vault_prefixes = secret.get("vault_prefixes", ["hub"])
 
+        counter = 0
         # In this structure, each field will have one value
         for fname, fvalue in secret.get("fields").items():
-            field_counter = 0
             self.inject_field(
-                secret_name, secret, fname, fvalue, mount, vault_prefixes, field_counter
+                secret_name, secret, fname, fvalue, mount, vault_prefixes, counter
             )
-            field_counter += 1
+            counter += 1
         return
 
     def inject_vault_policies(self):
