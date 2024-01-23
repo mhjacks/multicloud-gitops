@@ -175,27 +175,71 @@ class VaultSecretLoader:
         self.inject_vault_policies()
 
         for secret_name, secret in self.parsed_secrets.items():
-            self.inject_secret(secret_name, secret)
-            injected_secret_count = injected_secret_count + 1
+            self.inject_secret(secret_name, secret, injected_secret_count)
+            injected_secret_count += 1
 
         return injected_secret_count
 
-    def inject_secret(self, secret_name, secret):
-        for prefix in secret["vault_prefixes"]:
-            for fieldname, fieldvalue in secret["fields"].items():
-                # Special cases:
-                #   generate w|wo override
-                #   path (w|wo b64)
-                #
-                #   inifile secrets will be resolved by parser
-                #   values (including base64'd ones) will be resolved by parser
-                # And we just ignore k8s or other fields
-                if fieldname in secret["generate"]:
-                    if fieldname in secret["override"]:
-                        continue
-                if fieldname in secret["paths"]:
-                    if fieldname in secret["base64"]:
-                        continue
+    def inject_field(
+        self,
+        secret_name,
+        secret,
+        fieldname,
+        fieldvalue,
+        mount,
+        vault_prefixes,
+        first=False,
+    ):
+        # Special cases:
+        #   generate w|wo override
+        #   path (w|wo b64)
+        #
+        #   inifile secrets will be resolved by parser
+        #   values (including base64'd ones) will be resolved by parser
+        # And we just ignore k8s or other fields
+
+        override = True if fieldname in secret["overrides"] else False
+        b64 = True if fieldname in secret["base64"] else False
+        generate = True if fieldname in secret["generate"] else False
+        path = secret["paths"].get(fieldname, False)
+        prefixes = secret["vault_prefixes"]
+        verb = "put" if first else "patch"
+        policy = secret["vault_policies"].get(fieldname, False)
+
+        # "generate" secrets are created with policies and may be overridden or not
+        if generate:
+            gen_cmd = (
+                f"vault read -field=password sys/policies/password/{policy}/generate"
+            )
+            if b64:
+                gen_cmd += " | base64 --wrap=0"
+            for prefix in prefixes:
+                # if the override field is False and the secret attribute exists at the prefix then we just
+                # skip, as we do not want to overwrite the existing secret
+                if override and self._vault_secret_attr_exists(
+                    mount, prefix, secret_name, fieldname
+                ):
+                    continue
+                cmd = (
+                    f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
+                    f'"{gen_cmd} | vault kv {verb} -mount={mount} {prefix}/{secret_name} {fieldname}=-"'
+                )
+                self._run_command(cmd, attempts=3)
+            return
+
+            if path:
+                if b64:
+                    return
+
+    def inject_secret(self, secret_name, secret, counter):
+        mount = secret.get("vault_mount", "secret")
+        vault_prefixes = secret.get("vault_prefixes", ["hub"])
+
+        # In this structure, each field will have one value
+        for fname, fvalue in secret.get("fields").items():
+            self.inject_field(
+                secret_name, secret, fname, fvalue, mount, vault_prefixes, counter == 0
+            )
 
     def inject_vault_policies(self):
         for name, policy in self.vault_policies.items():
