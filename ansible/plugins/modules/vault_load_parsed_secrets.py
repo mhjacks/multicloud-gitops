@@ -198,7 +198,7 @@ class VaultSecretLoader:
         #   values (including base64'd ones) will be resolved by parser
         # And we just ignore k8s or other fields
 
-        override = True if fieldname in secret["overrides"] else False
+        override = True if fieldname in secret["override"] else False
         b64 = True if fieldname in secret["base64"] else False
         generate = True if fieldname in secret["generate"] else False
         path = secret["paths"].get(fieldname, False)
