@@ -175,7 +175,7 @@ class VaultSecretLoader:
         self.inject_vault_policies()
 
         for secret_name, secret in self.parsed_secrets.items():
-            self.inject_secret(secret_name, secret, injected_secret_count)
+            self.inject_secret(secret_name, secret)
             injected_secret_count += 1
 
         return injected_secret_count
@@ -251,15 +251,18 @@ class VaultSecretLoader:
             self._run_command(cmd, attempts=3)
         return
 
-    def inject_secret(self, secret_name, secret, counter):
+    def inject_secret(self, secret_name, secret):
         mount = secret.get("vault_mount", "secret")
         vault_prefixes = secret.get("vault_prefixes", ["hub"])
 
         # In this structure, each field will have one value
         for fname, fvalue in secret.get("fields").items():
+            field_counter = 0
             self.inject_field(
-                secret_name, secret, fname, fvalue, mount, vault_prefixes, counter == 0
+                secret_name, secret, fname, fvalue, mount, vault_prefixes, field_counter
             )
+            field_counter += 1
+        return
 
     def inject_vault_policies(self):
         for name, policy in self.vault_policies.items():
