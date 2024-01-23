@@ -183,7 +183,11 @@ class VaultSecretLoader:
     def inject_field(
         self,
         secret_name,
-        secret,
+        soverride,
+        sbase64,
+        sgenerate,
+        spaths,
+        svault_policies,
         fieldname,
         fieldvalue,
         mount,
@@ -198,13 +202,13 @@ class VaultSecretLoader:
         #   values (including base64'd ones) will be resolved by parser
         # And we just ignore k8s or other fields
 
-        override = True if fieldname in secret["override"] else False
-        b64 = True if fieldname in secret["base64"] else False
-        generate = True if fieldname in secret["generate"] else False
-        path = secret["paths"].get(fieldname, False)
-        prefixes = secret["vault_prefixes"]
+        override = True if fieldname in soverride else False
+        b64 = True if fieldname in sbase64 else False
+        generate = True if fieldname in sgenerate else False
+        path = spaths.get(fieldname, False)
+        prefixes = vault_prefixes
         verb = "put" if first else "patch"
-        policy = secret["vault_policies"].get(fieldname, False)
+        policy = svault_policies.get(fieldname, False)
 
         # "generate" secrets are created with policies and may be overridden or not
         if generate:
@@ -259,7 +263,17 @@ class VaultSecretLoader:
         # In this structure, each field will have one value
         for fname, fvalue in secret.get("fields").items():
             self.inject_field(
-                secret_name, secret, fname, fvalue, mount, vault_prefixes, counter
+                secret_name=secret_name,
+                soverride=secret["override"],
+                sbase64=secret["base64"],
+                sgenerate=secret["generate"],
+                spaths=secret["paths"],
+                svault_policies=secret["vault_policies"],
+                fieldname=fname,
+                fieldvalue=fvalue,
+                mount=mount,
+                vault_prefixes=vault_prefixes,
+                first=counter,
             )
             counter += 1
         return
