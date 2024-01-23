@@ -224,6 +224,7 @@ class VaultSecretLoader:
                     f"oc exec -n {self.namespace} {self.pod} -i -- sh -c "
                     f'"{gen_cmd} | vault kv {verb} -mount={mount} {prefix}/{secret_name} {fieldname}=-"'
                 )
+                print(cmd)
                 self._run_command(cmd, attempts=3)
             return
 
