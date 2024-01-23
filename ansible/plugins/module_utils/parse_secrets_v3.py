@@ -178,6 +178,7 @@ class ParseSecretsV3:
             fields = s.get("fields", [])
             vault_prefixes = self._get_vault_prefixes(s)
             secret_type = s.get("type", "Opaque")
+            vault_mount = s.get("vaultMount", "secret")
             namespace = s.get("namespace", self._get_default_namespace())
             labels = stringify_dict(s.get("labels", self._get_default_labels()))
             annotations = stringify_dict(
@@ -190,6 +191,7 @@ class ParseSecretsV3:
             self.parsed_secrets[sname] = {
                 "name": sname,
                 "fields": {},
+                "vault_mount": vault_mount,
                 "vault_policies": {},
                 "vault_prefixes": vault_prefixes,
                 "override": [],
