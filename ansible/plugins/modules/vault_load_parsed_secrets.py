@@ -273,7 +273,7 @@ class VaultSecretLoader:
                 fieldvalue=fvalue,
                 mount=mount,
                 vault_prefixes=vault_prefixes,
-                first=counter,
+                first=counter == 0,
             )
             counter += 1
         return
