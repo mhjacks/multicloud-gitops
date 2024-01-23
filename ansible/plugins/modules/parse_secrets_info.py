@@ -52,7 +52,7 @@ files.region2:
 
 import yaml
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.parse_secrets_v3 import ParseSecretsV3
+from ansible.module_utils.parse_secrets_v2 import ParseSecretsV2
 
 ANSIBLE_METADATA = {
     "metadata_version": "1.2",
@@ -122,7 +122,7 @@ def run(module):
     if syaml is None:
         syaml = {}
 
-    parsed_secret_obj = ParseSecretsV3(module, syaml, secrets_backing_store)
+    parsed_secret_obj = ParseSecretsV2(module, syaml, secrets_backing_store)
     parsed_secret_obj.parse()
 
     results["failed"] = False

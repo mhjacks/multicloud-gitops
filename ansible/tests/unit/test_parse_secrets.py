@@ -40,9 +40,9 @@ import load_secrets_common  # noqa: E402
 
 sys.modules["ansible.module_utils.load_secrets_common"] = load_secrets_common
 
-import parse_secrets_v3  # noqa: E402
+import parse_secrets_v2  # noqa: E402
 
-sys.modules["ansible.module_utils.parse_secrets_v3"] = parse_secrets_v3
+sys.modules["ansible.module_utils.parse_secrets_v2"] = parse_secrets_v2
 
 import parse_secrets_info  # noqa: E402
 

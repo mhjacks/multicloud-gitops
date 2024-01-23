@@ -41,7 +41,7 @@ default_vp_vault_policies = {
 default_namespace = "validated-patterns-secrets"
 
 
-class ParseSecretsV3:
+class ParseSecretsV2:
     def __init__(self, module, syaml, secrets_backing_store):
         self.module = module
         self.syaml = syaml
