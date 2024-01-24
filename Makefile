@@ -77,8 +77,12 @@ uninstall: ## runs helm uninstall
 	@oc delete csv -n openshift-operators $(CSV)
 
 .PHONY: load-secrets
-load-secrets: ## loads the secrets into the backend determined by values-secret config file
+load-secrets: ## loads the secrets into the backend determined by values-global setting
 	common/scripts/process-secrets.sh $(NAME)
+
+.PHONY: legacy-load-secrets
+legacy-load-secrets: ## loads the secrets into vault (only)
+	common/scripts/vault-utils.sh push_secrets $(NAME)
 
 .PHONY: secrets-backend-vault
 secrets-backend-vault: ## Edits values files to use default Vault+ESO secrets config
