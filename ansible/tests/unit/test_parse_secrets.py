@@ -28,6 +28,12 @@ from unittest.mock import patch
 
 from ansible.module_utils import basic
 from ansible.module_utils.common.text.converters import to_bytes
+from test_util_datastructures import (
+    DEFAULT_KUBERNETES_METADATA,
+    DEFAULT_KUBERNETES_SECRET_OBJECT,
+    DEFAULT_PARSED_SECRET_VALUE,
+    DEFAULT_VAULT_POLICIES,
+)
 
 # from unittest.mock import call, patch
 
@@ -194,14 +200,15 @@ class TestMyModule(unittest.TestCase):
             )
             parse_secrets_info.main()
 
-        vp = {
-            "validatedPatternDefaultPolicy": 'length=20\nrule "charset" { charset = "abcdefghijklmnopqrstuvwxyz" min-chars = 1 }\nrule "charset" { charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" min-chars = 1 }\nrule "charset" { charset = "0123456789" min-chars = 1 }\nrule "charset" { charset = "!@#%^&*" min-chars = 1 }\n',  # noqa: E501
+        vp = DEFAULT_VAULT_POLICIES | {
             "basicPolicy": 'length=10\nrule "charset" { charset = "abcdefghijklmnopqrstuvwxyz" min-chars = 1 }\nrule "charset" { charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" min-chars = 1 }\nrule "charset" { charset = "0123456789" min-chars = 1 }\n',  # noqa: E501
             "advancedPolicy": 'length=20\nrule "charset" { charset = "abcdefghijklmnopqrstuvwxyz" min-chars = 1 }\nrule "charset" { charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" min-chars = 1 }\nrule "charset" { charset = "0123456789" min-chars = 1 }\nrule "charset" { charset = "!@#%^&*" min-chars = 1 }\n',  # noqa: E501
         }
 
-        ps = {
-            "config-demo": {
+        # Beware reading this structure aloud to your cat...
+        pspsps = {
+            "config-demo": DEFAULT_PARSED_SECRET_VALUE
+            | {
                 "name": "config-demo",
                 "fields": {
                     "secret": None,
@@ -210,10 +217,8 @@ class TestMyModule(unittest.TestCase):
                     "ca_crt2": "",
                 },
                 "base64": ["ca_crt2"],
-                "ini_file": {},
                 "generate": ["secret"],
                 "override": ["secret"],
-                "vault_mount": "secret",
                 "vault_policies": {
                     "secret": "basicPolicy",
                 },
@@ -221,10 +226,6 @@ class TestMyModule(unittest.TestCase):
                     "region-one",
                     "snowflake.blueprints.rhecoeng.com",
                 ],
-                "type": "Opaque",
-                "namespace": "validated-patterns-secrets",
-                "labels": {},
-                "annotations": {},
                 "paths": {
                     "ca_crt": "/tmp/ca.crt",
                     "ca_crt2": "/tmp/ca.crt",
@@ -237,7 +238,7 @@ class TestMyModule(unittest.TestCase):
             (ret["failed"] is False)
             and (ret["changed"] is False)
             and (ds_eq(vp, ret["vault_policies"]))
-            and (ds_eq(ps, ret["parsed_secrets"]))
+            and (ds_eq(pspsps, ret["parsed_secrets"]))
         )
 
     def test_module_parsed_secret_ini_files(self, getpass):
@@ -253,17 +254,13 @@ class TestMyModule(unittest.TestCase):
             parse_secrets_info.main()
 
         ps = {
-            "aws": {
+            "aws": DEFAULT_PARSED_SECRET_VALUE
+            | {
                 "name": "aws",
                 "fields": {
                     "aws_access_key_id": "123123",
                     "aws_secret_access_key": "abcdefghi",
                 },
-                "namespace": "validated-patterns-secrets",
-                "labels": {},
-                "annotations": {},
-                "paths": {},
-                "base64": [],
                 "ini_file": {
                     "aws_access_key_id": {
                         "ini_file": "/tmp/awscredentials",
@@ -276,24 +273,14 @@ class TestMyModule(unittest.TestCase):
                         "ini_key": "aws_secret_access_key",
                     },
                 },
-                "generate": [],
-                "override": [],
-                "type": "Opaque",
-                "vault_mount": "secret",
-                "vault_policies": {},
-                "vault_prefixes": ["hub"],
             },
-            "awsfoobar": {
+            "awsfoobar": DEFAULT_PARSED_SECRET_VALUE
+            | {
                 "name": "awsfoobar",
                 "fields": {
                     "aws_access_key_id": "345345",
                     "aws_secret_access_key": "rstuvwxyz",
                 },
-                "namespace": "validated-patterns-secrets",
-                "labels": {},
-                "annotations": {},
-                "paths": {},
-                "base64": [],
                 "ini_file": {
                     "aws_access_key_id": {
                         "ini_file": "/tmp/awscredentials",
@@ -306,12 +293,6 @@ class TestMyModule(unittest.TestCase):
                         "ini_key": "aws_secret_access_key",
                     },
                 },
-                "generate": [],
-                "override": [],
-                "type": "Opaque",
-                "vault_mount": "secret",
-                "vault_policies": {},
-                "vault_prefixes": ["hub"],
             },
         }
 
@@ -337,17 +318,13 @@ class TestMyModule(unittest.TestCase):
             parse_secrets_info.main()
 
         ps = {
-            "aws": {
+            "aws": DEFAULT_PARSED_SECRET_VALUE
+            | {
                 "name": "aws",
                 "fields": {
                     "aws_access_key_id": "A123456789012345678A",
                     "aws_secret_access_key": "A12345678901234567890123456789012345678A",
                 },
-                "namespace": "validated-patterns-secrets",
-                "labels": {},
-                "annotations": {},
-                "paths": {},
-                "base64": [],
                 "ini_file": {
                     "aws_access_key_id": {
                         "ini_file": f"{os.environ['HOME']}/aws-example.ini",
@@ -360,23 +337,14 @@ class TestMyModule(unittest.TestCase):
                         "ini_key": "aws_secret_access_key",
                     },
                 },
-                "generate": [],
-                "override": [],
-                "type": "Opaque",
-                "vault_mount": "secret",
-                "vault_policies": {},
-                "vault_prefixes": ["hub"],
             },
-            "awsb64": {
+            "awsb64": DEFAULT_PARSED_SECRET_VALUE
+            | {
                 "name": "awsb64",
                 "fields": {
                     "aws_access_key_id": "QTEyMzQ1Njc4OTAxMjM0NTY3OEE=",
                     "aws_secret_access_key": "QTEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4QQ==",
                 },
-                "namespace": "validated-patterns-secrets",
-                "labels": {},
-                "annotations": {},
-                "paths": {},
                 "base64": [
                     "aws_access_key_id",
                     "aws_secret_access_key",
@@ -393,12 +361,6 @@ class TestMyModule(unittest.TestCase):
                         "ini_key": "aws_secret_access_key",
                     },
                 },
-                "generate": [],
-                "override": [],
-                "type": "Opaque",
-                "vault_mount": "secret",
-                "vault_policies": {},
-                "vault_prefixes": ["hub"],
             },
         }
 
@@ -427,15 +389,13 @@ class TestMyModule(unittest.TestCase):
         self.assertTrue(
             ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
-                    "type": "Opaque",
-                    "apiVersion": "v1",
-                    "metadata": {
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "test-secret",
                         "labels": {"testlabel": "4"},
                         "namespace": "validated-patterns-secrets",
-                        "annotations": {},
                     },
                     "stringData": {"username": "user"},
                 },
@@ -457,15 +417,12 @@ class TestMyModule(unittest.TestCase):
         self.assertTrue(
             ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
-                    "type": "Opaque",
-                    "apiVersion": "v1",
-                    "metadata": {
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "test-secret",
                         "labels": {"overridelabel": "42"},
-                        "annotations": {},
-                        "namespace": "validated-patterns-secrets",
                     },
                     "stringData": {"username": "user"},
                 },
@@ -488,14 +445,11 @@ class TestMyModule(unittest.TestCase):
             len(ret["kubernetes_secret_objects"]) == 1
             and ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
-                    "type": "Opaque",
-                    "apiVersion": "v1",
-                    "metadata": {
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "test-secret",
-                        "labels": {},
-                        "annotations": {},
                         "namespace": "overridden-namespace",
                     },
                     "stringData": {"username": "user"},
@@ -519,15 +473,12 @@ class TestMyModule(unittest.TestCase):
             len(ret["kubernetes_secret_objects"]) == 1
             and ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
                     "type": "user-specified",
-                    "apiVersion": "v1",
-                    "metadata": {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "test-secret",
-                        "labels": {},
-                        "annotations": {},
-                        "namespace": "validated-patterns-secrets",
                     },
                     "stringData": {"username": "user"},
                 },
@@ -550,15 +501,11 @@ class TestMyModule(unittest.TestCase):
             len(ret["kubernetes_secret_objects"]) == 1
             and ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
-                    "type": "Opaque",
-                    "apiVersion": "v1",
-                    "metadata": {
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "test-secret",
-                        "labels": {},
-                        "annotations": {},
-                        "namespace": "validated-patterns-secrets",
                     },
                     "stringData": {"username": "This space intentionally left blank\n"},
                 },
@@ -581,15 +528,11 @@ class TestMyModule(unittest.TestCase):
             len(ret["kubernetes_secret_objects"]) == 1
             and ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
-                    "type": "Opaque",
-                    "apiVersion": "v1",
-                    "metadata": {
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "test-secret",
-                        "labels": {},
-                        "annotations": {},
-                        "namespace": "validated-patterns-secrets",
                     },
                     "stringData": {
                         "username": "VGhpcyBzcGFjZSBpbnRlbnRpb25hbGx5IGxlZnQgYmxhbmsK"
@@ -616,15 +559,11 @@ class TestMyModule(unittest.TestCase):
             len(ret["kubernetes_secret_objects"]) == 1
             and ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
-                    "type": "Opaque",
-                    "apiVersion": "v1",
-                    "metadata": {
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "test-secret",
-                        "labels": {},
-                        "annotations": {},
-                        "namespace": "validated-patterns-secrets",
                     },
                     "stringData": {
                         "username": "VkdocGN5QnpjR0ZqWlNCcGJuUmxiblJwYjI1aGJHeDVJR3hsWm5RZ1lteGhibXNL"
@@ -646,20 +585,16 @@ class TestMyModule(unittest.TestCase):
             parse_secrets_info.main()
         ret = result.exception.args[0]
 
-        # The binary bytes are [ 8, 6, 7, 5, 3, 0, 9 ]
+        # The binary bytes are [ 8, 6, 7, 5, 3, 0, 9 ] (IYKYK)
         self.assertTrue(
             len(ret["kubernetes_secret_objects"]) == 1
             and ds_eq(
                 ret["kubernetes_secret_objects"][0],
-                {
-                    "kind": "Secret",
-                    "type": "Opaque",
-                    "apiVersion": "v1",
-                    "metadata": {
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
                         "name": "secret",
-                        "labels": {},
-                        "annotations": {},
-                        "namespace": "validated-patterns-secrets",
                     },
                     "stringData": {"secret": "CAYHBQMACQ=="},
                 },
