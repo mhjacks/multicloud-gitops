@@ -185,7 +185,7 @@ class VaultSecretLoader:
             for prefix in prefixes:
                 # if the override field is False and the secret attribute exists at the prefix then we just
                 # skip, as we do not want to overwrite the existing secret
-                if override and self._vault_secret_attr_exists(
+                if not override and self._vault_secret_attr_exists(
                     mount, prefix, secret_name, fieldname
                 ):
                     continue
