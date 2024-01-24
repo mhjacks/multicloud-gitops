@@ -14,40 +14,13 @@
 # under the License.
 
 """
-Ansible plugin module that loads secrets from a yaml file and pushes them
-inside the HashiCorp Vault in an OCP cluster. The values-secrets.yaml file is
+Ansible plugin module that loads secrets and policies once parsed and pushes them
+into a HashiCorp Vault in an OCP cluster. The values-secrets.yaml file is
 expected to be in the following format:
 ---
-# version is optional. When not specified it is assumed it is 1.0
-version: 1.0
+# version is optional. When not specified it is assumed it is 2.0
+version: 2.0
 
-# These secrets will be pushed in the vault at secret/hub/test The vault will
-# have secret/hub/test with secret1 and secret2 as keys with their associated
-# values (secrets)
-secrets:
-  test:
-    secret1: foo
-    secret2: bar
-
-# This will create the vault key secret/hub/testfoo which will have two
-# properties 'b64content' and 'content' which will be the base64-encoded
-# content and the normal content respectively
-files:
-  testfoo: ~/ca.crt
-
-# These secrets will be pushed in the vault at secret/region1/test The vault will
-# have secret/region1/test with secret1 and secret2 as keys with their associated
-# values (secrets)
-secrets.region1:
-  test:
-    secret1: foo1
-    secret2: bar1
-
-# This will create the vault key secret/region2/testbar which will have two
-# properties 'b64content' and 'content' which will be the base64-encoded
-# content and the normal content respectively
-files.region2:
-  testbar: ~/ca.crt
 """
 
 import os
@@ -95,13 +68,6 @@ options:
     required: false
     type: str
     default: vault-0
-  check_missing_secrets:
-    description:
-      - Validate the ~/values-secret.yaml file against the top-level
-        values-secret-template.yaml and error out if secrets are missing
-    required: false
-    type: bool
-    default: False
 """
 
 RETURN = """
@@ -109,8 +75,9 @@ RETURN = """
 
 EXAMPLES = """
 - name: Loads secrets file into the vault of a cluster
-  vault_load_secrets:
-    values_secrets: ~/values-secret.yaml
+  vault_load_parsed_secrets:
+    parsed_secrets: "{{ parsed_secrets_structure_from_parse_secrets_info }}"
+    vault_policies: "{{ parsed_vault_policies_structure_from_parse_secrets_info }}"
 """
 
 
@@ -122,14 +89,12 @@ class VaultSecretLoader:
         vault_policies,
         namespace,
         pod,
-        check_missing_secrets,
     ):
         self.module = module
         self.parsed_secrets = parsed_secrets
         self.vault_policies = vault_policies
         self.namespace = namespace
         self.pod = pod
-        self.check_missing_secrets = check_missing_secrets
 
     def _run_command(self, command, attempts=1, sleep=3, checkrc=True):
         """
@@ -295,14 +260,25 @@ def run(module):
 
     args = module.params
 
-    vault_policies = args.get("vault_policies")
-    parsed_secrets = args.get("parsed_secrets")
+    vault_policies = args.get("vault_policies", {})
+    parsed_secrets = args.get("parsed_secrets", {})
     namespace = args.get("namespace", "vault")
     pod = args.get("pod", "vault-0")
-    check_missing_secrets = args.get("check_missing_secrets")
+
+    if vault_policies == {}:
+        results["failed"] = True
+        module.fail_json("Must pass vault_policies")
+
+    if parsed_secrets == {}:
+        results["failed"] = True
+        module.fail_json("Must pass parsed_secrets")
 
     loader = VaultSecretLoader(
-        module, parsed_secrets, vault_policies, namespace, pod, check_missing_secrets
+        module,
+        parsed_secrets,
+        vault_policies,
+        namespace,
+        pod,
     )
 
     nr_secrets = loader.load_vault()
