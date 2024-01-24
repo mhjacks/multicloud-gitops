@@ -441,6 +441,9 @@ class ParseSecretsV2:
                 if override:
                     self.parsed_secrets[secret_name]["override"].append(f["name"])
 
+                if b64:
+                    self.parsed_secrets[secret_name]["base64"].append(f["name"])
+
                 self.parsed_secrets[secret_name]["fields"][f["name"]] = None
                 self.parsed_secrets[secret_name]["vault_policies"][
                     f["name"]
