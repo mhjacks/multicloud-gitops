@@ -40,6 +40,7 @@ default_vp_vault_policies = {
 
 secret_store_namespace = "validated-patterns-secrets"
 
+
 class ParseSecretsV2:
     def __init__(self, module, syaml, secrets_backing_store):
         self.module = module
@@ -325,7 +326,10 @@ class ParseSecretsV2:
                 return (False, f"Secret {s['name']} targetNamespaces must be a list")
 
             if backing_store == "none" and namespaces == []:
-                return (False, f"Secret {s['name']} targetNamespaces cannot be empty for secrets backend {backing_store}")
+                return (
+                    False,
+                    f"Secret {s['name']} targetNamespaces cannot be empty for secrets backend {backing_store}",
+                )  # noqa: E501
 
             labels = s.get("labels", {})
             if not isinstance(labels, dict):
