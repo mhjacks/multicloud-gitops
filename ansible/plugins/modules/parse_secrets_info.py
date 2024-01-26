@@ -131,6 +131,7 @@ def run(module):
     results["vault_policies"] = parsed_secret_obj.vault_policies
     results["parsed_secrets"] = parsed_secret_obj.parsed_secrets
     results["kubernetes_secret_objects"] = parsed_secret_obj.kubernetes_secret_objects
+    results["secret_store_namespace"] = parsed_secret_obj.secret_store_namespace
 
     module.exit_json(**results)
 

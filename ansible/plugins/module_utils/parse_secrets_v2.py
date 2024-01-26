@@ -40,12 +40,12 @@ default_vp_vault_policies = {
 
 secret_store_namespace = "validated-patterns-secrets"
 
-
 class ParseSecretsV2:
     def __init__(self, module, syaml, secrets_backing_store):
         self.module = module
         self.syaml = syaml
         self.secrets_backing_store = str(secrets_backing_store)
+        self.secret_store_namespace = None
         self.parsed_secrets = {}
         self.kubernetes_secret_objects = []
         self.vault_policies = {}
@@ -169,6 +169,7 @@ class ParseSecretsV2:
     def parse(self):
         self.sanitize_values()
         self.vault_policies = self._get_vault_policies()
+        self.secret_store_namespace = self._get_secret_store_namespace()
         backing_store = self._get_backingstore()
         secrets = self._get_secrets()
 

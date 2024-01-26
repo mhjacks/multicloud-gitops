@@ -411,6 +411,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -438,6 +439,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -458,7 +460,48 @@ class TestMyModule(unittest.TestCase):
             )
         )
 
-    def test_module_override_type(self, getpass):
+    def test_module_none_extra_namespaces(self, getpass):
+        testfile_output = self.get_file_as_stdout(
+            os.path.join(self.testdir_v2, "values-secret-v2-more-namespaces.yaml")
+        )
+        with self.assertRaises(AnsibleExitJson) as result:
+            set_module_args(
+                {
+                    "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "none",
+                }
+            )
+            parse_secrets_info.main()
+        ret = result.exception.args[0]
+        self.assertTrue(
+            len(ret["kubernetes_secret_objects"]) == 2
+            and ds_eq(
+                ret["kubernetes_secret_objects"][0],
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
+                        "name": "test-secret",
+                        "namespace": "default",
+                    },
+                    "stringData": {"username": "user"},
+                },
+            )
+            and ds_eq(
+                ret["kubernetes_secret_objects"][1],
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {
+                        "name": "test-secret",
+                        "namespace": "extra",
+                    },
+                    "stringData": {"username": "user"},
+                },
+            )
+        )
+
+    def test_module_override_type_kubernetes(self, getpass):
         testfile_output = self.get_file_as_stdout(
             os.path.join(self.testdir_v2, "values-secret-v2-override-type.yaml")
         )
@@ -466,6 +509,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -481,6 +525,33 @@ class TestMyModule(unittest.TestCase):
                     | {
                         "name": "test-secret",
                     },
+                    "stringData": {"username": "user"},
+                },
+            )
+        )
+
+    def test_module_override_type_none(self, getpass):
+        testfile_output = self.get_file_as_stdout(
+            os.path.join(self.testdir_v2, "values-secret-v2-override-type.yaml")
+        )
+        with self.assertRaises(AnsibleExitJson) as result:
+            set_module_args(
+                {
+                    "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "none",
+                }
+            )
+            parse_secrets_info.main()
+        ret = result.exception.args[0]
+        self.assertTrue(
+            len(ret["kubernetes_secret_objects"]) == 1
+            and ds_eq(
+                ret["kubernetes_secret_objects"][0],
+                DEFAULT_KUBERNETES_SECRET_OBJECT
+                | {
+                    "type": "user-specified",
+                    "metadata": DEFAULT_KUBERNETES_METADATA
+                    | {"name": "test-secret", "namespace": "default"},
                     "stringData": {"username": "user"},
                 },
             )

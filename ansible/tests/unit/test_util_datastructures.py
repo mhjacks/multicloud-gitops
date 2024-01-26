@@ -9,7 +9,7 @@ DEFAULT_PARSED_SECRET_VALUE = {
     "vault_policies": {},
     "vault_prefixes": ["hub"],
     "type": "Opaque",
-    "namespace": "validated-patterns-secrets",
+    "target_namespaces": [],
     "labels": {},
     "annotations": {},
     "paths": {},
