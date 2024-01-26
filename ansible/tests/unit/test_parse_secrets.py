@@ -184,7 +184,7 @@ class TestMyModule(unittest.TestCase):
             (ret["failed"] is False)
             and (ret["changed"] is False)
             and (len(ret["parsed_secrets"])) == 1
-            and (len(ret["kubernetes_secret_objects"]) == 1)
+            and (len(ret["kubernetes_secret_objects"]) == 0)
         )
 
     def test_module_parse_base_parsed_secrets(self, getpass):
@@ -301,7 +301,6 @@ class TestMyModule(unittest.TestCase):
             (ret["failed"] is False)
             and (ret["changed"] is False)
             and (len(ret["parsed_secrets"]) == 2)
-            and (len(ret["kubernetes_secret_objects"]) == 2)
             and (ds_eq(ps, ret["parsed_secrets"]))
         )
 
@@ -313,6 +312,75 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                }
+            )
+            parse_secrets_info.main()
+
+        ps = {
+            "aws": DEFAULT_PARSED_SECRET_VALUE
+            | {
+                "name": "aws",
+                "fields": {
+                    "aws_access_key_id": "A123456789012345678A",
+                    "aws_secret_access_key": "A12345678901234567890123456789012345678A",
+                },
+                "ini_file": {
+                    "aws_access_key_id": {
+                        "ini_file": f"{os.environ['HOME']}/aws-example.ini",
+                        "ini_section": "default",
+                        "ini_key": "aws_access_key_id",
+                    },
+                    "aws_secret_access_key": {
+                        "ini_file": f"{os.environ['HOME']}/aws-example.ini",
+                        "ini_section": "default",
+                        "ini_key": "aws_secret_access_key",
+                    },
+                },
+            },
+            "awsb64": DEFAULT_PARSED_SECRET_VALUE
+            | {
+                "name": "awsb64",
+                "fields": {
+                    "aws_access_key_id": "QTEyMzQ1Njc4OTAxMjM0NTY3OEE=",
+                    "aws_secret_access_key": "QTEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4QQ==",
+                },
+                "base64": [
+                    "aws_access_key_id",
+                    "aws_secret_access_key",
+                ],
+                "ini_file": {
+                    "aws_access_key_id": {
+                        "ini_file": f"{os.environ['HOME']}/aws-example.ini",
+                        "ini_section": "default",
+                        "ini_key": "aws_access_key_id",
+                    },
+                    "aws_secret_access_key": {
+                        "ini_file": f"{os.environ['HOME']}/aws-example.ini",
+                        "ini_section": "default",
+                        "ini_key": "aws_secret_access_key",
+                    },
+                },
+            },
+        }
+
+        ret = result.exception.args[0]
+        self.assertTrue(
+            (ret["failed"] is False)
+            and (ret["changed"] is False)
+            and (len(ret["parsed_secrets"]) == 2)
+            and (len(ret["kubernetes_secret_objects"]) == 0)
+            and (ds_eq(ps, ret["parsed_secrets"]))
+        )
+
+    def test_module_parsed_secret_ini_files_base64_kubernetes(self, getpass):
+        testfile_output = self.get_file_as_stdout(
+            os.path.join(self.testdir_v2, "values-secret-v2-ini-file-b64.yaml")
+        )
+        with self.assertRaises(AnsibleExitJson) as result:
+            set_module_args(
+                {
+                    "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -532,7 +600,7 @@ class TestMyModule(unittest.TestCase):
 
     def test_module_override_type_none(self, getpass):
         testfile_output = self.get_file_as_stdout(
-            os.path.join(self.testdir_v2, "values-secret-v2-override-type.yaml")
+            os.path.join(self.testdir_v2, "values-secret-v2-override-type-none.yaml")
         )
         with self.assertRaises(AnsibleExitJson) as result:
             set_module_args(
@@ -565,6 +633,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -592,6 +661,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -623,6 +693,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -652,6 +723,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
