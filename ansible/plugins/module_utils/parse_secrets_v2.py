@@ -38,7 +38,7 @@ default_vp_vault_policies = {
     )
 }
 
-default_namespace = "validated-patterns-secrets"
+secret_store_namespace = "validated-patterns-secrets"
 
 
 class ParseSecretsV2:
@@ -136,8 +136,8 @@ class ParseSecretsV2:
     def _get_field_override(self, f):
         return bool(f.get("override", False))
 
-    def _get_default_namespace(self):
-        return str(self.syaml.get("defaultNamespace", default_namespace))
+    def _get_secret_store_namespace(self):
+        return str(self.syaml.get("secretStoreNamespace", secret_store_namespace))
 
     def _get_vault_prefixes(self, s):
         return list(s.get("vaultPrefixes", ["hub"]))
@@ -169,23 +169,22 @@ class ParseSecretsV2:
     def parse(self):
         self.sanitize_values()
         self.vault_policies = self._get_vault_policies()
+        backing_store = self._get_backingstore()
         secrets = self._get_secrets()
 
         total_secrets = 0  # Counter for all the secrets uploaded
         for s in secrets:
+            total_secrets += 1
             counter = 0  # This counter is to use kv put on first secret and kv patch on latter
             sname = s.get("name")
             fields = s.get("fields", [])
             vault_prefixes = self._get_vault_prefixes(s)
             secret_type = s.get("type", "Opaque")
             vault_mount = s.get("vaultMount", "secret")
-            namespace = s.get("namespace", self._get_default_namespace())
+            target_namespaces = s.get("targetNamespaces", [])
             labels = stringify_dict(s.get("labels", self._get_default_labels()))
             annotations = stringify_dict(
                 s.get("annotations", self._get_default_annotations())
-            )
-            k8s_secret = self._create_k8s_secret(
-                sname, secret_type, namespace, labels, annotations
             )
 
             self.parsed_secrets[sname] = {
@@ -200,7 +199,7 @@ class ParseSecretsV2:
                 "base64": [],
                 "ini_file": {},
                 "type": secret_type,
-                "namespace": namespace,
+                "target_namespaces": target_namespaces,
                 "labels": labels,
                 "annotations": annotations,
             }
@@ -208,14 +207,18 @@ class ParseSecretsV2:
             for i in fields:
                 self._inject_field(sname, i)
                 counter += 1
-                total_secrets += 1
 
-            k8s_secret["stringData"] = self.parsed_secrets[sname]["fields"]
+            if backing_store == "kubernetes":
+                k8s_namespaces = [self._get_secret_store_namespace()]
+            else:
+                k8s_namespaces = target_namespaces
 
-            # Here is where we used to remove empty label and annotations dicts.
-            # This should cause previously populated labels/annotations to be removed.
-
-            self.kubernetes_secret_objects.append(k8s_secret)
+            for tns in k8s_namespaces:
+                k8s_secret = self._create_k8s_secret(
+                    sname, secret_type, tns, labels, annotations
+                )
+                k8s_secret["stringData"] = self.parsed_secrets[sname]["fields"]
+                self.kubernetes_secret_objects.append(k8s_secret)
 
         return total_secrets
 
@@ -296,6 +299,7 @@ class ParseSecretsV2:
         return (True, "")
 
     def _validate_secrets(self):
+        backing_store = self._get_backingstore()
         secrets = self._get_secrets()
         if len(secrets) == 0:
             self.module.fail_json("No secrets found")
@@ -315,9 +319,12 @@ class ParseSecretsV2:
             if vault_prefixes is None or len(vault_prefixes) == 0:
                 return (False, f"Secret {s['name']} has empty vaultPrefixes")
 
-            namespace = s.get("namespace", self._get_default_namespace())
-            if not isinstance(namespace, str):
-                return (False, f"Secret {s['name']} namespace must be a string")
+            namespaces = s.get("targetNamespaces", [])
+            if not isinstance(namespaces, list):
+                return (False, f"Secret {s['name']} targetNamespaces must be a list")
+
+            if backing_store == "none" and namespaces == []:
+                return (False, f"Secret {s['name']} targetNamespaces cannot be empty for secrets backend {backing_store}")
 
             labels = s.get("labels", {})
             if not isinstance(labels, dict):

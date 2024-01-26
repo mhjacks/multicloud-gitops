@@ -381,6 +381,7 @@ class TestMyModule(unittest.TestCase):
             set_module_args(
                 {
                     "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "kubernetes",
                 }
             )
             parse_secrets_info.main()
@@ -727,7 +728,7 @@ class TestMyModule(unittest.TestCase):
             == "You cannot have onMissingValue set to 'generate' unless using vault backingstore for secret config-demo field secret"  # noqa: E501
         )
 
-    def test_ensure_generate_errors_on_none(self, getpass):
+    def test_ensure_generate_errors_on_none_generate(self, getpass):
         testfile_output = self.get_file_as_stdout(
             os.path.join(self.testdir_v2, "values-secret-v2-generic-onlygenerate.yaml")
         )
