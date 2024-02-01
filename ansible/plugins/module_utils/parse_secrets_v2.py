@@ -83,7 +83,12 @@ class ParseSecretsV2:
             policies = default_vp_vault_policies.copy()
         else:
             policies = {}
-        policies.update(self.syaml.get("vaultPolicies", {}))
+
+        # This is useful for embedded newlines, which occur with YAML
+        # flow-type scalars (|, |- for example)
+        for name, policy in self.syaml.get("vaultPolicies", {}).items():
+            policies[name] = bytes(policy, "utf-8").decode("unicode_escape")
+
         return policies
 
     def _get_secrets(self):
@@ -95,7 +100,14 @@ class ParseSecretsV2:
         return f.get("onMissingValue", "error")
 
     def _get_field_value(self, f):
-        return f.get("value", None)
+        value = f.get("value", None)
+
+        # This is useful for embedded newlines, which occur with YAML
+        # flow-type scalars (|, |- for example)
+        if value is not None:
+            value = bytes(value, "utf-8").decode("unicode_escape")
+
+        return value
 
     def _get_field_path(self, f):
         return f.get("path", None)

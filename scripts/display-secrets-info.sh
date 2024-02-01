@@ -14,7 +14,10 @@ ANSIBLEPATH="$(dirname ${SCRIPTPATH})/ansible"
 PLAYBOOKPATH="${ANSIBLEPATH}/playbooks"
 
 export ANSIBLE_CONFIG="${ANSIBLEPATH}/ansible.cfg"
-export VALUES_SECRET=$(get_abs_filename "${1}")
+
+if [ "$#" -ge 1 ]; then
+    export VALUES_SECRET=$(get_abs_filename "${1}")
+fi
 
 if [[ "$#" == 2 ]]; then
     SECRETS_BACKING_STORE="$2"
