@@ -87,7 +87,7 @@ class ParseSecretsV2:
         # This is useful for embedded newlines, which occur with YAML
         # flow-type scalars (|, |- for example)
         for name, policy in self.syaml.get("vaultPolicies", {}).items():
-            policies[name] = bytes(policy, "utf-8").decode("unicode_escape")
+            policies[name] = self._sanitize_yaml_value(policy)
 
         return policies
 
@@ -100,14 +100,7 @@ class ParseSecretsV2:
         return f.get("onMissingValue", "error")
 
     def _get_field_value(self, f):
-        value = f.get("value", None)
-
-        # This is useful for embedded newlines, which occur with YAML
-        # flow-type scalars (|, |- for example)
-        if value is not None:
-            value = bytes(value, "utf-8").decode("unicode_escape")
-
-        return value
+        return f.get("value", None)
 
     def _get_field_path(self, f):
         return f.get("path", None)
@@ -163,6 +156,16 @@ class ParseSecretsV2:
 
     def _append_kubernetes_secret(self, secret_obj):
         self.kubernetes_secret_objects.append(secret_obj)
+
+    def _sanitize_yaml_value(self, value):
+        # This is useful for embedded newlines, which occur with YAML
+        # flow-type scalars (|, |- for example)
+        if value is not None:
+            sanitized_value = bytes(value, "utf-8").decode("unicode_escape")
+        else:
+            sanitized_value = None
+
+        return sanitized_value
 
     def _create_k8s_secret(self, sname, secret_type, namespace, labels, annotations):
         return {
@@ -402,7 +405,7 @@ class ParseSecretsV2:
         # We cannot use match + case as RHEL8 has python 3.9 (it needs 3.10)
         # We checked for errors in _validate_secrets() already
         if on_missing_value == "error":
-            return field.get("value")
+            return self._sanitize_yaml_value(field.get("value"))
         elif on_missing_value == "prompt":
             prompt = self._get_field_prompt(field)
             if prompt is None:

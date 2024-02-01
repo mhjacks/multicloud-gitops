@@ -745,6 +745,60 @@ class TestMyModule(unittest.TestCase):
             )
         )
 
+    def test_ensure_success_retrieving_block_yaml_policy(self, getpass):
+        testfile_output = self.get_file_as_stdout(
+            os.path.join(self.testdir_v2, "values-secret-v2-defaultvp-policy.yaml")
+        )
+        with self.assertRaises(AnsibleExitJson) as ansible_err:
+            set_module_args(
+                {
+                    "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "vault",
+                }
+            )
+            parse_secrets_info.main()
+
+        ret = ansible_err.exception.args[0]
+        self.assertTrue(
+            ds_eq(
+                ret["vault_policies"],
+                {
+                    "basicPolicy": 'length=10\nrule "charset" { charset = "abcdefghijklmnopqrstuvwxyz" min-chars = 1 }\nrule "charset" { charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" min-chars = 1 }\nrule "charset" { charset = "0123456789" min-chars = 1 }\n',  # noqa: E501
+                    "validatedPatternDefaultPolicy": 'length=20\nrule "charset" { charset = "abcdefghijklmnopqrstuvwxyz" min-chars = 1 }\nrule "charset" { charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" min-chars = 1 }\nrule "charset" { charset = "0123456789" min-chars = 1 }\nrule "charset" { charset = "!@#%^&*" min-chars = 1 }\n',  # noqa: E501
+                },
+            )
+        )
+
+    def test_ensure_success_retrieving_block_yaml_value(self, getpass):
+        testfile_output = self.get_file_as_stdout(
+            os.path.join(self.testdir_v2, "values-secret-v2-block-yamlstring.yaml")
+        )
+        with self.assertRaises(AnsibleExitJson) as ansible_err:
+            set_module_args(
+                {
+                    "values_secrets_plaintext": testfile_output,
+                    "secrets_backing_store": "vault",
+                }
+            )
+            parse_secrets_info.main()
+
+        ret = ansible_err.exception.args[0]
+        self.assertTrue(
+            ds_eq(
+                ret["parsed_secrets"],
+                {
+                    "config-demo": DEFAULT_PARSED_SECRET_VALUE
+                    | {
+                        "fields": {
+                            "sshprivkey": "ssh-rsa oNb/kAvwdQl+FKdwzzKo5rnGIB68UOxWoaKPnKdgF/ts67CDBslWGnpUZCpp8TdaxfHmpoyA6nutMwQw8OAMEUybxvilDn+ZVJ/5qgfRBdi8wLKRLTIj0v+ZW7erN9yuZG53xUQAaQjivM3cRyNLIZ9torShYaYwD1UTTDkV97RMfNDlWI5f5FGRvfy429ZfCwbUWUbijrcv/mWc/uO3x/+MBXwa4f8ubzEYlrt4yH/Vbpzs67kE9UJ9z1zurFUFJydy1ZDAdKSiBS91ImI3ccKnbz0lji2bgSYR0Wp1IQhzSpjyJU2rIu9HAEUh85Rwf2jakfLpMcg/hSBer3sG  kilroy@example.com",  # noqa: E501
+                            "sshpubkey": "-----BEGIN OPENSSH PRIVATE KEY-----\nTtzxGgWrNerAr1hzUqPW2xphF/Aur1rQXSLv4J7frEJxNED6u/eScsNgwJMGXwRx7QYVohh0ARHVhJdUzJK7pEIphi4BGw==\nwlo+oQsi828b47SKZB8/K9dbeLlLiXh9/hu47MGpeGHZsKbjAdauncuw+YUDDN2EADJjasNMZHjxYhXKtqDjXTIw1X1n0Q==\n-----END OPENSSH PRIVATE KEY-----",  # noqa: E501
+                        },
+                        "name": "config-demo",
+                    }
+                },
+            )
+        )
+
     def test_ensure_kubernetes_backend_allowed(self, getpass):
         testfile_output = self.get_file_as_stdout(
             os.path.join(self.testdir_v2, "values-secret-v2-base-k8s-backend.yaml")
