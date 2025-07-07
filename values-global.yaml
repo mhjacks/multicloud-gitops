@@ -1,6 +1,7 @@
 ---
 global:
   pattern: multicloud-gitops
+  clusterPushSecrets: true
   options:
     useCSV: false
     syncPolicy: Automatic
@@ -9,4 +10,5 @@ main:
   clusterGroupName: hub
   multiSourceConfig:
     enabled: true
-    clusterGroupChartVersion: "0.9.*"
+    clusterGroupGitRepoUrl: https://github.com/mhjacks/clustergroup-chart
+    clusterGroupChartGitRevision: cluster_push_secrets
