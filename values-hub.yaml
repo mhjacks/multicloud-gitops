@@ -84,7 +84,6 @@ clusterGroup:
       path: 'charts/s4/'
       extraValueFiles:
         - '$patternref/overrides/values-s4-chart.yaml'
-        - "$patternref/s4-s3.{{ $.Values.global.hubClusterDomain }}"
       overrides:
         - name: ingress.s3Api.hosts[0].host
           value: "s4-s3.{{ $.Values.global.hubClusterDomain }}"
