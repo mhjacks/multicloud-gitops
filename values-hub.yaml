@@ -86,7 +86,9 @@ clusterGroup:
         - '$patternref/overrides/values-s4-chart.yaml'
       overrides:
         - name: ingress.s3Api.hosts[0].host
-          value: s4-s3.{{ $.Values.global.hubClusterDomain }}
+          value: "s4-s3.{{ $.Values.hubcluster }}"
+  extraHubClusterDomainFields:
+    - hubcluster
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
