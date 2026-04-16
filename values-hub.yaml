@@ -10,6 +10,7 @@ clusterGroup:
     external-secrets:
     config-demo:
     hello-world:
+    s4:
   subscriptions:
     acm:
       name: advanced-cluster-management
