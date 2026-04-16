@@ -11,5 +11,5 @@ main:
     enabled: true
     #clusterGroupChartVersion: "0.9.*"
     clusterGroupGitRepoUrl: https://github.com/mhjacks/clustergroup-chart.git
-    clusterGroupGitRevision: test_tpl
+    clusterGroupChartGitRevision: test_tpl
 
