@@ -87,6 +87,12 @@ clusterGroup:
       overrides:
         - name: ingress.s3Api.hosts[0].host
           value: "s4-s3.{{ $.Values.global.hubClusterDomain }}"
+        - name: fake_name
+          value: true
+          forceString: true
+        - name: fake_pi
+          value: 3.14159
+          forceString: true
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
