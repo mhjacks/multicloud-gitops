@@ -8,6 +8,7 @@ clusterGroup:
       operatorGroup: true
       targetNamespaces: []
     external-secrets:
+    vp-proxy-ca-sync:
   # The gitops subscription on spokes gets managed by ACM
   subscriptions:
     eso:

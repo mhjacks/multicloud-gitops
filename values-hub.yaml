@@ -11,7 +11,7 @@ clusterGroup:
     config-demo:
     hello-world:
     s4:
-    vp-manage-proxy-cluster-ca:
+    vp-proxy-ca-bundles:
   subscriptions:
     acm:
       name: advanced-cluster-management
@@ -78,7 +78,7 @@ clusterGroup:
       path: charts/all/hello-world
     vp-cluster-truster:
       name: vp-manage-proxy-cluster-ca
-      namespace: vp-manage-proxy-cluster-ca
+      namespace: vp-proxy-ca-bunndles
       argoProject: hub
       chartVersion: main
       repoURL: https://github.com/mhjacks/vp-manage-proxy-cluster-ca-chart.git
