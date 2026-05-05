@@ -1,14 +1,15 @@
 clusterGroup:
   name: group-one
-  # openshift-sscsi-vault uses hub-style Vault Kubernetes auth (hub mount + hub-role) for the same KV paths
-  # as the former ESO flow; set explicitly because domain-based hub detection is false on managed clusters.
-  isHubCluster: true
   # Namespace is a dictionary for easier overriding (lists are supported as well)
   namespaces:
     vault:
     openshift-cluster-csi-drivers:
       operatorGroup: true
       targetNamespaces: []
+    external-secrets-operator:
+      operatorGroup: true
+      targetNamespaces: []
+    external-secrets:
     config-demo:
     hello-world:
   # The gitops subscription on spokes gets managed by ACM
@@ -19,8 +20,13 @@ clusterGroup:
       channel: stable
       source: redhat-operators
       sourceNamespace: openshift-marketplace
+    eso:
+      name: openshift-external-secrets-operator
+      namespace: external-secrets-operator
+      channel: stable-v1
   argoProjects:
     - hub
+    - eso
     - config-demo
     - hello-world
   applications:
@@ -38,6 +44,14 @@ clusterGroup:
       overrides:
         - name: vault.csi.daemonSet.providersDir
           value: /etc/kubernetes/secrets-store-csi-providers
+    openshift-external-secrets:
+      name: openshift-external-secrets
+      namespace: external-secrets
+      argoProject: eso
+      annotations:
+        argocd.argoproj.io/sync-wave: "8"
+      chart: openshift-external-secrets
+      chartVersion: 0.0.*
     openshift-sscsi-vault:
       name: openshift-sscsi-vault-config-demo
       namespace: config-demo
@@ -47,7 +61,7 @@ clusterGroup:
       chart: openshift-sscsi-vault
       chartVersion: 0.0.*
       extraValueFiles:
-        - $patternref/overrides/values-openshift-sscsi-vault-config-demo.yaml
+        - $patternref/overrides/values-openshift-sscsi-vault-config-demo-spoke.yaml
       ignoreDifferences:
         - group: ""
           kind: ConfigMap
@@ -63,11 +77,8 @@ clusterGroup:
           limit: 20
         syncOptions:
           - RespectIgnoreDifferences=true
-      ssCsiWorkloadAuth:
-        - serviceAccount: config-demo-sa
-          namespace: config-demo
-          cluster: hub
-          roleSlug: config-demo-config-demo-sa-config-demo
+      # ssCsiWorkloadAuth for spokes is defined under clusterGroup.managedClusterGroups in values-hub.yaml
+      # (vault_ss_csi_workload_auth only loads values-{main.clusterGroupName}.yaml).
     config-demo:
       name: config-demo
       namespace: config-demo

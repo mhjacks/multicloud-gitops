@@ -1,0 +1,37 @@
+# Spoke/managed-cluster values for openshift-sscsi-vault (same KV paths as hub).
+#
+# ESO on spokes uses Vault Kubernetes auth mount path = ACM vault_path (cluster FQDN) and role
+# "{vault_path}-role" for the openshift-external-secrets ServiceAccount (vault_spokes_init.yaml).
+# The openshift-sscsi-vault chart (non-hub) emits the same mount/role pattern using global.clusterDomain,
+# so the operator-injected clusterDomain must match vault_path.
+#
+# SS CSI workload identities get roles auth/<vault_path>/role/<vault_path>-sscsi-<slug> from
+# vault_ss_csi_spoke_cluster.yaml; define those under clusterGroup.managedClusterGroups.*.applications
+# in values-hub.yaml. If the chart's roleName does not match your slug, track chart enhancements or patch SPC.
+---
+ocpSecretsStoreCsiVault:
+  secretProviderClass:
+    installDefaultManifests: true
+    enabled: true
+    name: config-demo-vault-csi
+  rbac:
+    rolename: hub-role
+    serviceAccount:
+      create: true
+      name: config-demo-sa
+      namespace: config-demo
+  objects:
+    - objectName: secret
+      secretPath: secret/data/global/config-demo
+      secretKey: secret
+  secretObjects: []
+  vault:
+    externalAddress: ""
+    hubMountPath: hub
+
+global:
+  hubClusterDomain: hub.example.com
+  localClusterDomain: ""
+
+clusterGroup:
+  applications: {}

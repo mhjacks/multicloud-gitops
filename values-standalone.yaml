@@ -6,6 +6,10 @@ clusterGroup:
     openshift-cluster-csi-drivers:
       operatorGroup: true
       targetNamespaces: []
+    external-secrets-operator:
+      operatorGroup: true
+      targetNamespaces: []
+    external-secrets:
     config-demo:
     hello-world:
   subscriptions:
@@ -15,8 +19,13 @@ clusterGroup:
       channel: stable
       source: redhat-operators
       sourceNamespace: openshift-marketplace
+    eso:
+      name: openshift-external-secrets-operator
+      namespace: external-secrets-operator
+      channel: stable-v1
   argoProjects:
     - hub
+    - eso
     - config-demo
     - hello-world
   # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
@@ -47,6 +56,14 @@ clusterGroup:
           value: true
         - name: vault.csi.daemonSet.providersDir
           value: /etc/kubernetes/secrets-store-csi-providers
+    openshift-external-secrets:
+      name: openshift-external-secrets
+      namespace: external-secrets
+      argoProject: eso
+      annotations:
+        argocd.argoproj.io/sync-wave: "8"
+      chart: openshift-external-secrets
+      chartVersion: 0.0.*
     openshift-sscsi-vault:
       name: openshift-sscsi-vault-config-demo
       namespace: config-demo

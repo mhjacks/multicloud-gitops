@@ -8,6 +8,10 @@ clusterGroup:
     openshift-cluster-csi-drivers:
       operatorGroup: true
       targetNamespaces: []
+    external-secrets-operator:
+      operatorGroup: true
+      targetNamespaces: []
+    external-secrets:
     config-demo:
     hello-world:
   subscriptions:
@@ -22,8 +26,13 @@ clusterGroup:
       channel: stable
       source: redhat-operators
       sourceNamespace: openshift-marketplace
+    eso:
+      name: openshift-external-secrets-operator
+      namespace: external-secrets-operator
+      channel: stable-v1
   argoProjects:
     - hub
+    - eso
     - config-demo
     - hello-world
   # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
@@ -72,6 +81,15 @@ clusterGroup:
           value: true
         - name: vault.csi.daemonSet.providersDir
           value: /etc/kubernetes/secrets-store-csi-providers
+    # ESO chart + operator: rhvp.cluster_utils (hub-role, spoke auth, SA token). Config-demo secrets use SSCSI.
+    openshift-external-secrets:
+      name: openshift-external-secrets
+      namespace: external-secrets
+      argoProject: eso
+      annotations:
+        argocd.argoproj.io/sync-wave: "8"
+      chart: openshift-external-secrets
+      chartVersion: 0.0.*
     openshift-sscsi-vault:
       name: openshift-sscsi-vault-config-demo
       namespace: config-demo
@@ -173,35 +191,46 @@ clusterGroup:
       acmlabels:
         - name: clusterGroup
           value: group-one
+      # rhvp.cluster_utils vault_ss_csi_workload_auth reads values-hub.yaml (main.clusterGroupName), not
+      # values-group-one.yaml. Spoke Vault roles use auth/<vault_path>/role/<vault_path>-sscsi-<slug> per
+      # vault_ss_csi_spoke_cluster.yaml; cluster must match ManagedCluster name, vault_path, or clusters_info name.
+      applications:
+        openshift-sscsi-vault-spoke:
+          namespace: config-demo
+          ssCsiWorkloadAuth:
+            - serviceAccount: config-demo-sa
+              namespace: config-demo
+              cluster: group-one
+              roleSlug: config-demo-config-demo-sa-config-demo
       # helmOverrides:
       #   - name: foo
       #     value: bar
-          # Before enabling cluster provisioning, ensure AWS and/or Azure
-          #   credentials and OCP pull secrets are defined in Vault.
-          #   See values-secret.yaml.template
-          #
-          # clusterPools:
-          #  exampleAWSPool:
-          #    name: aws-ap
-          #    openshiftVersion: 4.10.18
-          #    baseDomain: blueprints.rhecoeng.com
-          #    platform:
-          #      aws:
-          #        region: ap-southeast-2
-          #    clusters:
-          #    - One
-          #
-          #  exampleAzurePool:
-          #    name: azure-us
-          #    openshiftVersion: 4.10.18
-          #    baseDomain: blueprints.rhecoeng.com
-          #    platform:
-          #      azure:
-          #        baseDomainResourceGroupName: dojo-dns-zones
-          #        region: eastus
-          #    clusters:
-          #    - Two
-          #    - Three
+      # Before enabling cluster provisioning, ensure AWS and/or Azure
+      # credentials and OCP pull secrets are defined in Vault.
+      # See values-secret.yaml.template
+      #
+      # clusterPools:
+      #  exampleAWSPool:
+      #    name: aws-ap
+      #    openshiftVersion: 4.10.18
+      #    baseDomain: blueprints.rhecoeng.com
+      #    platform:
+      #      aws:
+      #        region: ap-southeast-2
+      #    clusters:
+      #    - One
+      #
+      #  exampleAzurePool:
+      #    name: azure-us
+      #    openshiftVersion: 4.10.18
+      #    baseDomain: blueprints.rhecoeng.com
+      #    platform:
+      #      azure:
+      #        baseDomainResourceGroupName: dojo-dns-zones
+      #        region: eastus
+      #    clusters:
+      #    - Two
+      #    - Three
 #  To have apps in multiple flavors, use namespaces and use helm overrides as appropriate
 #
 #    pipelines:
