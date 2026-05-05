@@ -1,11 +1,6 @@
 ---
-secretStore:
-  name: vault-backend
-  kind: ClusterSecretStore
-
-configdemosecret:
-  key: secret/data/global/config-demo
-  refreshInterval: 5m0s
+# Vault path for the demo value must match overrides/values-openshift-sscsi-vault-config-demo.yaml
+# (SecretProviderClass objects[].secretPath).
 
 global:
   hubClusterDomain: hub.example.com

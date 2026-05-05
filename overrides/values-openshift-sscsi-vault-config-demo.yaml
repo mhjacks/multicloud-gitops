@@ -1,0 +1,29 @@
+# Standalone openshift-sscsi-vault release for config-demo (replaces ExternalSecret + ESO for this app).
+# Keep clusterGroup.applications in pattern values so the chart detects hashicorp-vault (hub-style auth).
+---
+ocpSecretsStoreCsiVault:
+  secretProviderClass:
+    installDefaultManifests: true
+    enabled: true
+    name: config-demo-vault-csi
+  rbac:
+    rolename: hub-role
+    serviceAccount:
+      create: true
+      name: config-demo-sa
+      namespace: config-demo
+  objects:
+    - objectName: secret
+      secretPath: secret/data/global/config-demo
+      secretKey: secret
+  secretObjects: []
+  vault:
+    externalAddress: ""
+    hubMountPath: hub
+
+global:
+  hubClusterDomain: hub.example.com
+  localClusterDomain: ""
+
+clusterGroup:
+  applications: {}

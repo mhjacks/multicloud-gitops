@@ -1,5 +1,5 @@
 apiVersion: v2
-description: A Helm chart to build and deploy a use of remote configuration enabled by ACM and Vault
+description: Demo app using Vault via Secrets Store CSI (openshift-sscsi-vault) instead of External Secrets
 keywords:
 - pattern
 name: config-demo

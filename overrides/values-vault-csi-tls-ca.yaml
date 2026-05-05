@@ -1,0 +1,28 @@
+# Referenced from values-hub.yaml clusterGroup.applications.vault.extraValueFiles so Argo merges this
+# into the Vault Helm release. Mounts the ConfigMap at /etc/pki/vault-ca (must match
+# openshift-sscsi-vault.caProvider.syncProviderCaConfigMap.mountDir).
+#
+# Default (openshift-sscsi-vault 0.0.15+): chart renders ConfigMap openshift-sscsi-vault-vault-tls-ca
+# with inject-trusted-cabundle; CNO fills ca-bundle.crt (cluster defaults + Proxy trustedCA).
+# SecretProviderClass vaultCACertPath points at mountDir/ca-bundle.crt.
+#
+# Projected volume: only mount trustedCabundleDataKey (default ca-bundle.crt) with optional: true so
+# the CSI pod schedules before CNO fills the key; matches openshift-sscsi-vault Argo drift ignore path.
+---
+vault:
+  csi:
+    volumes:
+      - name: openshift-sscsi-vault-ca
+        projected:
+          defaultMode: 420
+          sources:
+            - configMap:
+                name: openshift-sscsi-vault-vault-tls-ca
+                optional: true
+                items:
+                  - key: ca-bundle.crt
+                    path: ca-bundle.crt
+    volumeMounts:
+      - name: openshift-sscsi-vault-ca
+        mountPath: /etc/pki/vault-ca
+        readOnly: true

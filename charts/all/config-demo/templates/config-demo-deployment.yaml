@@ -17,6 +17,7 @@ spec:
         deploymentconfig: config-demo
       name: config-demo
     spec:
+      serviceAccountName: config-demo-sa
       securityContext:
         runAsNonRoot: true
         seccompProfile:
@@ -85,8 +86,11 @@ spec:
           defaultMode: 438
           name: config-demo-configmap
       - name: config-demo-secret
-        secret:
-          secretName: config-demo-secret
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: config-demo-vault-csi
       - name: tmp-volume
         emptyDir: {}
       - name: cache-volume

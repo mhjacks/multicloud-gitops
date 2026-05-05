@@ -1,13 +1,13 @@
 clusterGroup:
   name: hub
+  isHubCluster: true
   # Namespace is a dictionary for easier overriding (lists are supported as well)
   namespaces:
     open-cluster-management:
     vault:
-    external-secrets-operator:
+    openshift-cluster-csi-drivers:
       operatorGroup: true
       targetNamespaces: []
-    external-secrets:
     config-demo:
     hello-world:
   subscriptions:
@@ -16,10 +16,12 @@ clusterGroup:
       namespace: open-cluster-management
       channel: release-2.16
       # csv: advanced-cluster-management.v2.6.1
-    eso:
-      name: openshift-external-secrets-operator
-      namespace: external-secrets-operator
-      channel: stable-v1
+    openshift-sscsi:
+      name: secrets-store-csi-driver-operator
+      namespace: openshift-cluster-csi-drivers
+      channel: stable
+      source: redhat-operators
+      sourceNamespace: openshift-marketplace
   argoProjects:
     - hub
     - config-demo
@@ -56,18 +58,59 @@ clusterGroup:
       name: vault
       namespace: vault
       argoProject: hub
-      chart: hashicorp-vault
-      chartVersion: 0.1.*
-    openshift-external-secrets:
-      name: openshift-external-secrets
-      namespace: external-secrets
-      argoProject: hub
-      chart: openshift-external-secrets
+      annotations:
+        argocd.argoproj.io/sync-wave: "5"
+      repoURL: https://github.com/mhjacks/hashicorp-vault-chart.git
+      chartVersion: add_csi
+      path: "."
+      # CSI CA mount: same ConfigMap name as openshift-sscsi-vault syncProviderCaConfigMap (CNO-injected
+      # bundle by default; see overrides/values-openshift-sscsi-vault-config-demo.yaml).
+      extraValueFiles:
+        - $patternref/overrides/values-vault-csi-tls-ca.yaml
+      overrides:
+        - name: vault.csi.enabled
+          value: true
+        - name: vault.csi.daemonSet.providersDir
+          value: /etc/kubernetes/secrets-store-csi-providers
+    openshift-sscsi-vault:
+      name: openshift-sscsi-vault-config-demo
+      namespace: config-demo
+      argoProject: config-demo
+      annotations:
+        argocd.argoproj.io/sync-wave: "20"
+      chart: openshift-sscsi-vault
       chartVersion: 0.0.*
+      extraValueFiles:
+        - $patternref/overrides/values-openshift-sscsi-vault-config-demo.yaml
+      # CNO fills ConfigMap.data after apply; ignore whole data blob vs one key.
+      ignoreDifferences:
+        - group: ""
+          kind: ConfigMap
+          name: openshift-sscsi-vault-vault-tls-ca
+          namespace: vault
+          jsonPointers:
+            - /data
+          jqPathExpressions:
+            - .data
+      syncPolicy:
+        automated: {}
+        retry:
+          limit: 20
+        syncOptions:
+          - RespectIgnoreDifferences=true
+      # rhvp.cluster_utils: vault_ss_csi_workload_auth reads this and creates Vault Kubernetes auth
+      # bindings for the workload ServiceAccount (when using stable_slug mode, align with chart defaults).
+      ssCsiWorkloadAuth:
+        - serviceAccount: config-demo-sa
+          namespace: config-demo
+          cluster: hub
+          roleSlug: config-demo-config-demo-sa-config-demo
     config-demo:
       name: config-demo
       namespace: config-demo
       argoProject: config-demo
+      annotations:
+        argocd.argoproj.io/sync-wave: "25"
       path: charts/all/config-demo
     hello-world:
       name: hello-world
@@ -75,6 +118,28 @@ clusterGroup:
       argoProject: hello-world
       path: charts/all/hello-world
   imperative:
+    # clustergroup-chart merges these rules when set (see templates/imperative/clusterrole.yaml):
+    # allow create/update/patch on ConfigMaps cluster-wide for vault_ss_csi_* route CA ConfigMaps, etc.
+    clusterRoleYaml:
+      - apiGroups:
+          - '*'
+        resources:
+          - '*'
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - ''
+        resources:
+          - configmaps
+        verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
     # Total timeout of all jobs is 1h: imperative.activeDeadlineSeconds
@@ -88,6 +153,20 @@ clusterGroup:
         # per playbook timeout in seconds
         timeout: 234
         # verbosity: "-v"
+  # OCP: Secrets Store CSI operator alone does not register the driver; ClusterCSIDriver is required
+  # (see "Installing the Secrets Store CSI driver" in OpenShift CSI docs).
+  extraObjects:
+    secrets-store-csi-clustercsidriver:
+      apiVersion: operator.openshift.io/v1
+      kind: ClusterCSIDriver
+      metadata:
+        name: secrets-store.csi.k8s.io
+        annotations:
+          argocd.argoproj.io/sync-wave: "15"
+      spec:
+        managementState: Managed
+        logLevel: Normal
+        operatorLogLevel: Normal
   managedClusterGroups:
     exampleRegion:
       name: group-one
