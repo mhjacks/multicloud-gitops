@@ -1,6 +1,11 @@
 # Standalone openshift-sscsi-vault release for config-demo (replaces ExternalSecret + ESO for this app).
 # Keep clusterGroup.applications in pattern values so the chart detects hashicorp-vault (hub-style auth).
 #
+# rbac.rolename is emitted as SecretProviderClass parameters.roleName (hub-style auth). It must match the
+# Vault Kubernetes auth role created by rhvp.cluster_utils vault_ss_csi_workload_auth: hub-sscsi-<roleSlug>
+# from clusterGroup.applications.openshift-sscsi-vault.ssCsiWorkloadAuth in values-hub.yaml—not hub-role
+# (that name is for the openshift-external-secrets operator).
+#
 # TLS / "certificate signed by unknown authority" when logging in to Vault (e.g. vault-vault.apps...):
 # The CSI provider verifies Vault HTTPS using vaultCACertPath (default: CNO-injected ca-bundle.crt on the
 # Vault CSI DaemonSet). The default OpenShift *cluster* trust bundle often does **not** include the CA that
@@ -22,7 +27,7 @@ ocpSecretsStoreCsiVault:
     enabled: true
     name: config-demo-vault-csi
   rbac:
-    rolename: hub-role
+    rolename: hub-sscsi-config-demo-config-demo-sa-config-demo
     serviceAccount:
       create: true
       name: config-demo-sa
