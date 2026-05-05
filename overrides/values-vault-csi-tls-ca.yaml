@@ -6,8 +6,10 @@
 # with inject-trusted-cabundle; CNO fills ca-bundle.crt (cluster defaults + Proxy trustedCA).
 # SecretProviderClass vaultCACertPath points at mountDir/ca-bundle.crt.
 #
-# Projected volume: only mount trustedCabundleDataKey (default ca-bundle.crt) with optional: true so
-# the CSI pod schedules before CNO fills the key; matches openshift-sscsi-vault Argo drift ignore path.
+# Project the whole ConfigMap (no `items` filter) so both modes work:
+#   - CNO-injected bundle: ca-bundle.crt (optional CM until CNO writes data).
+#   - GitOps PEM mode (injectTrustedCabundle: false + pemLiteral): vault-tls-ca.pem per openshift-sscsi-vault chart.
+# A narrow `items: [ca-bundle.crt]` list alone breaks PEM-only ConfigMaps and causes TLS verify failures.
 ---
 vault:
   csi:
@@ -19,9 +21,6 @@ vault:
             - configMap:
                 name: openshift-sscsi-vault-vault-tls-ca
                 optional: true
-                items:
-                  - key: ca-bundle.crt
-                    path: ca-bundle.crt
     volumeMounts:
       - name: openshift-sscsi-vault-ca
         mountPath: /etc/pki/vault-ca

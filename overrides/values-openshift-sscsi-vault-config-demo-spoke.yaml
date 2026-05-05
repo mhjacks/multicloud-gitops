@@ -8,6 +8,9 @@
 # SS CSI workload identities get roles auth/<vault_path>/role/<vault_path>-sscsi-<slug> from
 # vault_ss_csi_spoke_cluster.yaml; define those under clusterGroup.managedClusterGroups.*.applications
 # in values-hub.yaml. If the chart's roleName does not match your slug, track chart enhancements or patch SPC.
+#
+# TLS: same Vault Route / CA bundle considerations as hub; see comments in
+# overrides/values-openshift-sscsi-vault-config-demo.yaml and values-vault-csi-tls-ca.yaml.
 ---
 ocpSecretsStoreCsiVault:
   secretProviderClass:

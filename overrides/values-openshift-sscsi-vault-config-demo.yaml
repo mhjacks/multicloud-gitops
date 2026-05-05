@@ -1,5 +1,20 @@
 # Standalone openshift-sscsi-vault release for config-demo (replaces ExternalSecret + ESO for this app).
 # Keep clusterGroup.applications in pattern values so the chart detects hashicorp-vault (hub-style auth).
+#
+# TLS / "certificate signed by unknown authority" when logging in to Vault (e.g. vault-vault.apps...):
+# The CSI provider verifies Vault HTTPS using vaultCACertPath (default: CNO-injected ca-bundle.crt on the
+# Vault CSI DaemonSet). The default OpenShift *cluster* trust bundle often does **not** include the CA that
+# signed the **apps ingress / Route** certificate for Vault unless you add it—e.g. Cluster Proxy
+# `spec.trustedCA` (reference a ConfigMap with the ingress/router CA PEM), or deploy
+# vp-manage-proxy-cluster-ca (vp-cluster-truster on the hub) so the merged bundle matches what routes use.
+#
+# Alternatives:
+#   - Point Vault at an in-cluster URL the cluster already trusts (if Vault serves a suitable cert), e.g. set
+#     ocpSecretsStoreCsiVault.vault.externalAddress to https://vault-vault.vault.svc:8200 (verify listener/SNI).
+#   - GitOps-only PEM: set caProvider.syncProviderCaConfigMap.injectTrustedCabundle: false and pemLiteral to a
+#     concatenated PEM (typically openshift-ingress router-ca + kube root CA). Requires overrides/values-vault-csi-tls-ca.yaml
+#     to mount the full ConfigMap (not only ca-bundle.crt)—see that file.
+#   - Dev only: ocpSecretsStoreCsiVault.tls.vaultSkipTLSVerify: "true"
 ---
 ocpSecretsStoreCsiVault:
   secretProviderClass:
