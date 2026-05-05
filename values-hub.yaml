@@ -90,6 +90,14 @@ clusterGroup:
         argocd.argoproj.io/sync-wave: "8"
       chart: openshift-external-secrets
       chartVersion: 0.0.*
+    # Hub/spoke Proxy trustedCA + bundle (from aap-starter-kit; ACM enabled on this pattern by default).
+    vp-cluster-truster:
+      name: vp-manage-proxy-cluster-ca
+      namespace: openshift-config
+      argoProject: hub
+      repoURL: https://github.com/mhjacks/vp-manage-proxy-cluster-ca-chart.git
+      chartVersion: main
+      path: "."
     openshift-sscsi-vault:
       name: openshift-sscsi-vault-config-demo
       namespace: config-demo
