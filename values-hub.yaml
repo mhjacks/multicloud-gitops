@@ -136,8 +136,11 @@ clusterGroup:
       argoProject: hello-world
       path: charts/all/hello-world
   imperative:
-    # clustergroup-chart merges these rules when set (see templates/imperative/clusterrole.yaml):
-    # allow create/update/patch on ConfigMaps cluster-wide for vault_ss_csi_* route CA ConfigMaps, etc.
+    image: quay.io/martjack/vp-utility-container-test:latest
+    verbosity: '-vvv'
+    # clustergroup-chart replaces the default imperative ClusterRole rules when this is set (see
+    # templates/imperative/clusterrole.yaml), so keep the chart default get/list/watch on * plus
+    # create/update/patch on ConfigMaps cluster-wide (vault_ss_csi_* route CA ConfigMaps, etc.).
     clusterRoleYaml:
       - apiGroups:
           - '*'
