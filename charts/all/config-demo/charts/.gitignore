@@ -1,0 +1,2 @@
+# Helm dependency packages — fetch with `helm dependency update` from Chart.yaml repositories only (HTTPS).
+*.tgz

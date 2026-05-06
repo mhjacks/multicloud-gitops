@@ -1,6 +1,17 @@
 apiVersion: v2
-description: Demo app using Vault via Secrets Store CSI (openshift-sscsi-vault) instead of External Secrets
+description: >-
+  Demo app using Vault via Secrets Store CSI; SecretProviderClass is rendered with the
+  vp-sscsi-spc chart (Validated Patterns chart repo) from clusterGroup workload auth metadata.
+home: https://github.com/validatedpatterns/multicloud-gitops
 keywords:
-- pattern
+  - pattern
 name: config-demo
-version: 0.0.1
+version: 0.0.2
+# vp-sscsi-spc: Validated Patterns Helm repo (https://charts.validatedpatterns.io). Requires a local repo named
+# `validatedpatterns` (e.g. `helm repo add validatedpatterns https://charts.validatedpatterns.io`). The @ alias avoids
+# "chart not found" when several repo entries share that URL. Pair with openshift-sscsi-vault-chart at `chartVersion: main`.
+# Run `helm dependency update` before `helm lint` / `helm template` (charts/*.tgz is gitignored).
+dependencies:
+  - name: vp-sscsi-spc
+    version: "0.1.*"
+    repository: "@validatedpatterns"

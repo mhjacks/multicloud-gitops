@@ -1,49 +1,9 @@
-# Standalone openshift-sscsi-vault release for config-demo (replaces ExternalSecret + ESO for this app).
-# Keep clusterGroup.applications in pattern values so the chart detects hashicorp-vault (hub-style auth).
-#
-# rbac.rolename is emitted as SecretProviderClass parameters.roleName (hub-style auth). It must match the
-# Vault Kubernetes auth role created by rhvp.cluster_utils vault_ss_csi_workload_auth: hub-sscsi-<roleSlug>
-# from clusterGroup.applications.openshift-sscsi-vault.ssCsiWorkloadAuth in values-hub.yaml—not hub-role
-# (that name is for the openshift-external-secrets operator).
-#
-# TLS / "certificate signed by unknown authority" when logging in to Vault (e.g. vault-vault.apps...):
-# The CSI provider verifies Vault HTTPS using vaultCACertPath (default: CNO-injected ca-bundle.crt on the
-# Vault CSI DaemonSet). The default OpenShift *cluster* trust bundle often does **not** include the CA that
-# signed the **apps ingress / Route** certificate for Vault unless you add it—e.g. Cluster Proxy
-# `spec.trustedCA` (reference a ConfigMap with the ingress/router CA PEM), or deploy
-# vp-manage-proxy-cluster-ca (vp-cluster-truster on the hub) so the merged bundle matches what routes use.
-#
-# Alternatives:
-#   - Point Vault at an in-cluster URL the cluster already trusts (if Vault serves a suitable cert), e.g. set
-#     ocpSecretsStoreCsiVault.vault.externalAddress to https://vault-vault.vault.svc:8200 (verify listener/SNI).
-#   - GitOps-only PEM: set caProvider.syncProviderCaConfigMap.injectTrustedCabundle: false and pemLiteral to a
-#     concatenated PEM (typically openshift-ingress router-ca + kube root CA). Requires overrides/values-vault-csi-tls-ca.yaml
-#     to mount the full ConfigMap (not only ca-bundle.crt)—see that file.
-#   - Dev only: ocpSecretsStoreCsiVault.tls.vaultSkipTLSVerify: "true"
+# openshift-sscsi-vault: cluster-wide Vault CSI (TLS CA ConfigMap in vault namespace + CSI provider DaemonSet).
+# Argo multisource: use repo validatedpatterns/openshift-sscsi-vault-chart with targetRevision main (values: chartVersion: main).
+# Install the Application in namespace vault so the provider can project the synced ConfigMap (chart README).
+# Per-workload SecretProviderClass is not rendered here; use vp-sscsi-spc from each app chart (e.g. config-demo).
+# https://github.com/validatedpatterns/openshift-sscsi-vault-chart
 ---
 ocpSecretsStoreCsiVault:
-  secretProviderClass:
+  clusterWide:
     installDefaultManifests: true
-    enabled: true
-    name: config-demo-vault-csi
-  rbac:
-    rolename: hub-sscsi-config-demo-config-demo-sa-config-demo
-    serviceAccount:
-      create: true
-      name: config-demo-sa
-      namespace: config-demo
-  objects:
-    - objectName: secret
-      secretPath: secret/data/global/config-demo
-      secretKey: secret
-  secretObjects: []
-  vault:
-    externalAddress: ""
-    hubMountPath: hub
-
-global:
-  hubClusterDomain: hub.example.com
-  localClusterDomain: ""
-
-clusterGroup:
-  applications: {}

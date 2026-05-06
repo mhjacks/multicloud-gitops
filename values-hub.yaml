@@ -67,8 +67,6 @@ clusterGroup:
       name: vault
       namespace: vault
       argoProject: hub
-      annotations:
-        argocd.argoproj.io/sync-wave: "5"
       repoURL: https://github.com/mhjacks/hashicorp-vault-chart.git
       chartVersion: add_csi
       path: "."
@@ -81,13 +79,11 @@ clusterGroup:
           value: true
         - name: vault.csi.daemonSet.providersDir
           value: /etc/kubernetes/secrets-store-csi-providers
-    # ESO chart + operator: rhvp.cluster_utils (hub-role, spoke auth, SA token). Config-demo secrets use SSCSI.
+    # ESO chart + operator: rhvp.cluster_utils (hub-role, spoke auth, SA token). Config-demo secrets use SSCSI + vp-sscsi-spc.
     openshift-external-secrets:
       name: openshift-external-secrets
       namespace: external-secrets
       argoProject: eso
-      annotations:
-        argocd.argoproj.io/sync-wave: "8"
       chart: openshift-external-secrets
       chartVersion: 0.0.*
     # Hub/spoke Proxy trustedCA + bundle (from aap-starter-kit; ACM enabled on this pattern by default).
@@ -98,14 +94,14 @@ clusterGroup:
       repoURL: https://github.com/mhjacks/vp-manage-proxy-cluster-ca-chart.git
       chartVersion: main
       path: "."
+    # Cluster-wide Vault CSI (vault ns). Per-app SecretProviderClass: charts/all/config-demo (vp-sscsi-spc library).
     openshift-sscsi-vault:
       name: openshift-sscsi-vault-hubcluster
       namespace: vault
       argoProject: hub
-      annotations:
-        argocd.argoproj.io/sync-wave: "20"
       repoURL: https://github.com/validatedpatterns/openshift-sscsi-vault-chart.git
       path: "."
+      # multisource: chartVersion is Argo targetRevision for this repo (main branch).
       chartVersion: main
       extraValueFiles:
         - $patternref/overrides/values-openshift-sscsi-vault-config-demo.yaml
@@ -136,8 +132,6 @@ clusterGroup:
       name: config-demo
       namespace: config-demo
       argoProject: config-demo
-      annotations:
-        argocd.argoproj.io/sync-wave: "25"
       path: charts/all/config-demo
     hello-world:
       name: hello-world
@@ -191,8 +185,6 @@ clusterGroup:
       kind: ClusterCSIDriver
       metadata:
         name: secrets-store.csi.k8s.io
-        annotations:
-          argocd.argoproj.io/sync-wave: "15"
       spec:
         managementState: Managed
         logLevel: Normal
@@ -204,8 +196,8 @@ clusterGroup:
         - name: clusterGroup
           value: group-one
       # rhvp.cluster_utils vault_ss_csi_workload_auth reads values-hub.yaml (main.clusterGroupName), not
-      # values-group-one.yaml. Spoke Vault roles use auth/<vault_path>/role/<vault_path>-sscsi-<slug> per
-      # vault_ss_csi_spoke_cluster.yaml; cluster must match ManagedCluster name, vault_path, or clusters_info name.
+      # values-group-one.yaml. Spoke roles: align `cluster` + roleSlug with Vault and with vp-sscsi-spc
+      # (<cluster>-sscsi-<roleSlug> when roleSlug is set). Mount path on spokes is global.clusterDomain (ACM).
       applications:
         openshift-sscsi-vault-spoke:
           namespace: config-demo

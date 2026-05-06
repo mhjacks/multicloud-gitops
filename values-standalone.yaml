@@ -44,8 +44,6 @@ clusterGroup:
       name: vault
       namespace: vault
       argoProject: hub
-      annotations:
-        argocd.argoproj.io/sync-wave: "5"
       repoURL: https://github.com/mhjacks/hashicorp-vault-chart.git
       chartVersion: add_csi
       path: "."
@@ -60,18 +58,17 @@ clusterGroup:
       name: openshift-external-secrets
       namespace: external-secrets
       argoProject: eso
-      annotations:
-        argocd.argoproj.io/sync-wave: "8"
       chart: openshift-external-secrets
       chartVersion: 0.0.*
+    # Cluster-wide Vault CSI (vault ns). config-demo chart renders SecretProviderClass via vp-sscsi-spc.
     openshift-sscsi-vault:
-      name: openshift-sscsi-vault-config-demo
-      namespace: config-demo
-      argoProject: config-demo
-      annotations:
-        argocd.argoproj.io/sync-wave: "20"
-      chart: openshift-sscsi-vault
-      chartVersion: 0.0.*
+      name: openshift-sscsi-vault-standalone
+      namespace: vault
+      argoProject: hub
+      repoURL: https://github.com/validatedpatterns/openshift-sscsi-vault-chart.git
+      path: "."
+      # multisource: chartVersion is Argo targetRevision for this repo (main branch).
+      chartVersion: main
       extraValueFiles:
         - $patternref/overrides/values-openshift-sscsi-vault-config-demo.yaml
       ignoreDifferences:
@@ -98,8 +95,6 @@ clusterGroup:
       name: config-demo
       namespace: config-demo
       argoProject: config-demo
-      annotations:
-        argocd.argoproj.io/sync-wave: "25"
       path: charts/all/config-demo
     hello-world:
       name: hello-world
@@ -107,6 +102,8 @@ clusterGroup:
       argoProject: hello-world
       path: charts/all/hello-world
   imperative:
+    image: quay.io/martjack/vp-utility-container-test:latest
+    verbosity: '-vvv'
     clusterRoleYaml:
       - apiGroups:
           - '*'
@@ -146,8 +143,6 @@ clusterGroup:
       kind: ClusterCSIDriver
       metadata:
         name: secrets-store.csi.k8s.io
-        annotations:
-          argocd.argoproj.io/sync-wave: "15"
       spec:
         managementState: Managed
         logLevel: Normal

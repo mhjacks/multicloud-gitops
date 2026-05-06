@@ -1,6 +1,5 @@
 ---
-# Vault path for the demo value must match overrides/values-openshift-sscsi-vault-config-demo.yaml
-# (SecretProviderClass objects[].secretPath).
+# Vault path for the demo value must match ocpSecretsStoreCsiVault.objects[].secretPath below.
 
 global:
   hubClusterDomain: hub.example.com
@@ -8,6 +7,38 @@ global:
 
 clusterGroup:
   isHubCluster: true
+  # Pattern values merge the full `clusterGroup.applications` tree at deploy time (hub + spokes).
+
+# Subchart vp-sscsi-spc: disable its default template output; parent renders SPC via include only.
+vp-sscsi-spc:
+  ocpSecretsStoreCsiVault:
+    secretProviderClass:
+      enabled: false
+      installDefaultManifests: false
+
+# App SecretProviderClass (vp-sscsi-spc helper). Role and namespace resolve from
+# clusterGroup.applications[applicationKey].ssCsiWorkloadAuth when set (see values-hub / values-group-one).
+ocpSecretsStoreCsiVault:
+  applicationKey: openshift-sscsi-vault
+  workloadAuthIndex: 0
+  secretProviderClass:
+    installDefaultManifests: true
+    enabled: true
+    name: config-demo-vault-csi
+    namespace: ""
+  objects:
+    - objectName: secret
+      secretPath: secret/data/global/config-demo
+      secretKey: secret
+  secretObjects: []
+  vault:
+    externalAddress: ""
+    hubMountPath: hub
+  tls:
+    vaultSkipTLSVerify: "false"
+    # Default openshift-sscsi-vault sync ConfigMap uses CNO-injected trustedCabundleDataKey (ca-bundle.crt).
+    vaultCACertPath: /etc/pki/vault-ca/ca-bundle.crt
+    vaultTLSServerName: ""
 
 image:
   repository: registry.access.redhat.com/ubi10/httpd-24
