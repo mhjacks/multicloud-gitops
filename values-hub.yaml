@@ -63,22 +63,13 @@ clusterGroup:
       argoProject: hub
       chart: acm
       chartVersion: 0.2.*
+    # HashiCorp Vault server (VP hashicorp-vault chart). Vault CSI provider DaemonSet is only from openshift-sscsi-vault.
     vault:
       name: vault
       namespace: vault
       argoProject: hub
-      repoURL: https://github.com/mhjacks/hashicorp-vault-chart.git
-      chartVersion: add_csi
-      path: "."
-      # CSI CA mount: same ConfigMap name as openshift-sscsi-vault syncProviderCaConfigMap (CNO-injected
-      # bundle by default; see overrides/values-openshift-sscsi-vault-config-demo.yaml).
-      extraValueFiles:
-        - $patternref/overrides/values-vault-csi-tls-ca.yaml
-      overrides:
-        - name: vault.csi.enabled
-          value: true
-        - name: vault.csi.daemonSet.providersDir
-          value: /etc/kubernetes/secrets-store-csi-providers
+      chart: hashicorp-vault
+      chartVersion: 0.1.*
     # ESO chart + operator: rhvp.cluster_utils (hub-role, spoke auth, SA token). Config-demo secrets use SSCSI + vp-sscsi-spc.
     openshift-external-secrets:
       name: openshift-external-secrets

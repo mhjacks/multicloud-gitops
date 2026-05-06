@@ -44,16 +44,8 @@ clusterGroup:
       name: vault
       namespace: vault
       argoProject: hub
-      repoURL: https://github.com/mhjacks/hashicorp-vault-chart.git
-      chartVersion: add_csi
-      path: "."
-      extraValueFiles:
-        - $patternref/overrides/values-vault-csi-tls-ca.yaml
-      overrides:
-        - name: vault.csi.enabled
-          value: true
-        - name: vault.csi.daemonSet.providersDir
-          value: /etc/kubernetes/secrets-store-csi-providers
+      chart: hashicorp-vault
+      chartVersion: 0.1.*
     openshift-external-secrets:
       name: openshift-external-secrets
       namespace: external-secrets
