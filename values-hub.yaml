@@ -103,8 +103,6 @@ clusterGroup:
       path: "."
       # multisource: chartVersion is Argo targetRevision for this repo (main branch).
       chartVersion: main
-      extraValueFiles:
-        - $patternref/overrides/values-openshift-sscsi-vault-config-demo.yaml
       # CNO fills ConfigMap.data after apply; ignore whole data blob vs one key.
       ignoreDifferences:
         - group: ""

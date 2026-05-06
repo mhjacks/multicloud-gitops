@@ -1,9 +1,0 @@
-# openshift-sscsi-vault: cluster-wide Vault CSI (TLS CA ConfigMap in vault namespace + CSI provider DaemonSet).
-# Argo multisource: use repo validatedpatterns/openshift-sscsi-vault-chart with targetRevision main (values: chartVersion: main).
-# Install the Application in namespace vault so the provider can project the synced ConfigMap (chart README).
-# Per-workload SecretProviderClass is not rendered here; use vp-sscsi-spc from each app chart (e.g. config-demo).
-# https://github.com/validatedpatterns/openshift-sscsi-vault-chart
----
-ocpSecretsStoreCsiVault:
-  clusterWide:
-    installDefaultManifests: true
