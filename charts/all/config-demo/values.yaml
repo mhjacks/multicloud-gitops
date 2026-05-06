@@ -34,6 +34,10 @@ ocpSecretsStoreCsiVault:
   vault:
     externalAddress: ""
     hubMountPath: hub
+  # Required: vp_sscsi_spc.secretproviderclass dereferences .auth.roleName (no default guard). Coalesce order is
+  # workload-derived role first, then this, then the literal hub-role in the template.
+  auth:
+    roleName: hub-role
   tls:
     vaultSkipTLSVerify: "false"
     # Default openshift-sscsi-vault sync ConfigMap uses CNO-injected trustedCabundleDataKey (ca-bundle.crt).
