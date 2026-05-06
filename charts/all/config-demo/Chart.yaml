@@ -14,4 +14,4 @@ version: 0.0.2
 dependencies:
   - name: vp-sscsi-spc
     version: "0.1.*"
-    repository: "@validatedpatterns"
+    repository: "https://charts.validatedpatterns.io"
