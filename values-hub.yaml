@@ -99,13 +99,14 @@ clusterGroup:
       chartVersion: main
       path: "."
     openshift-sscsi-vault:
-      name: openshift-sscsi-vault-config-demo
-      namespace: config-demo
-      argoProject: config-demo
+      name: openshift-sscsi-vault-hubcluster
+      namespace: vault
+      argoProject: hub
       annotations:
         argocd.argoproj.io/sync-wave: "20"
-      chart: openshift-sscsi-vault
-      chartVersion: 0.0.*
+      repoURL: https://github.com/validatedpatterns/openshift-sscsi-vault-chart.git
+      path: "."
+      chartVersion: main
       extraValueFiles:
         - $patternref/overrides/values-openshift-sscsi-vault-config-demo.yaml
       # CNO fills ConfigMap.data after apply; ignore whole data blob vs one key.
