@@ -54,6 +54,9 @@ clusterGroup:
             - /data
           jqPathExpressions:
             - .data
+      overrides:
+        - name: vault.global.externalVaultAddr
+          value: "https://vault-vault.apps.{{ $.Values.global.hubClusterDomain }}"
       syncPolicy:
         automated: {}
         retry:
