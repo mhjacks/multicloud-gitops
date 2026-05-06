@@ -45,8 +45,6 @@ clusterGroup:
       path: "."
       # multisource: chartVersion is Argo targetRevision for this repo (main branch).
       chartVersion: main
-      extraValueFiles:
-        - $patternref/overrides/values-openshift-sscsi-vault-config-demo-spoke.yaml
       ignoreDifferences:
         - group: ""
           kind: ConfigMap
