@@ -1,0 +1,15 @@
+{{- if .Values.vaultCaBundle.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.vaultCaBundle.configMapName }}
+  labels:
+    config.openshift.io/inject-trusted-cabundle: "true"
+  annotations:
+    argocd.argoproj.io/ignore-differences: |
+      jsonPointers:
+      - /data
+      jqPathExpressions:
+      - .data
+data: {}
+{{- end }}

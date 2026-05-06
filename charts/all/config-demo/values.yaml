@@ -1,6 +1,14 @@
 ---
 # Vault path for the demo value must match ocpSecretsStoreCsiVault.objects[].secretPath below.
 
+# Cluster merged CA bundle (CNO inject-trusted-cabundle) in the app namespace — same trust model as
+# openshift-sscsi-vault for Vault HTTPS. Mount path should stay aligned with ocpSecretsStoreCsiVault.tls.vaultCACertPath.
+vaultCaBundle:
+  enabled: true
+  configMapName: config-demo-vault-tls-ca
+  mountPath: /etc/pki/vault-ca
+  bundleKey: ca-bundle.crt
+
 global:
   hubClusterDomain: hub.example.com
   localClusterDomain: region-one.example.com

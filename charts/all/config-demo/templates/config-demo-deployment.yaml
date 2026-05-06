@@ -36,6 +36,11 @@ spec:
         - mountPath: /var/www/html/secret
           readOnly: true
           name: config-demo-secret
+        {{- if .Values.vaultCaBundle.enabled }}
+        - mountPath: {{ .Values.vaultCaBundle.mountPath | quote }}
+          name: vault-tls-ca
+          readOnly: true
+        {{- end }}
         - mountPath: /tmp
           name: tmp-volume
         - mountPath: /var/cache/httpd
@@ -91,6 +96,18 @@ spec:
           readOnly: true
           volumeAttributes:
             secretProviderClass: config-demo-vault-csi
+      {{- if .Values.vaultCaBundle.enabled }}
+      - name: vault-tls-ca
+        projected:
+          defaultMode: 420
+          sources:
+            - configMap:
+                name: {{ .Values.vaultCaBundle.configMapName }}
+                optional: true
+                items:
+                  - key: {{ .Values.vaultCaBundle.bundleKey }}
+                    path: {{ .Values.vaultCaBundle.bundleKey }}
+      {{- end }}
       - name: tmp-volume
         emptyDir: {}
       - name: cache-volume

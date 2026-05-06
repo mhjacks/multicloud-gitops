@@ -88,6 +88,21 @@ clusterGroup:
       namespace: config-demo
       argoProject: config-demo
       path: charts/all/config-demo
+      ignoreDifferences:
+        - group: ""
+          kind: ConfigMap
+          name: config-demo-vault-tls-ca
+          namespace: config-demo
+          jsonPointers:
+            - /data
+          jqPathExpressions:
+            - .data
+      syncPolicy:
+        automated: {}
+        retry:
+          limit: 20
+        syncOptions:
+          - RespectIgnoreDifferences=true
     hello-world:
       name: hello-world
       namespace: hello-world
