@@ -62,7 +62,8 @@ clusterGroup:
           limit: 20
         syncOptions:
           - RespectIgnoreDifferences=true
-      # vp-sscsi-spc resolves role as <cluster>-sscsi-<roleSlug>; rhvp.cluster_utils must create the matching Vault role.
+      # SS-CSI: Vault role is <vault_path>-sscsi-<roleSlug> (spoke FQDN = ACM global.clusterDomain). vp-sscsi-spc uses the
+      # same prefix as vaultKubernetesMountPath, not this short cluster label. cluster_utils matches rows by group name or FQDN.
       ssCsiWorkloadAuth:
         - serviceAccount: config-demo-sa
           namespace: config-demo

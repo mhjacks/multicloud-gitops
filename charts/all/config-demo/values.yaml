@@ -41,8 +41,9 @@ vp-sscsi-spc:
       enabled: false
       installDefaultManifests: false
 
-# App SecretProviderClass (vp-sscsi-spc helper). Role and namespace resolve from
+# App SecretProviderClass (vp-sscsi-spc helper). Namespace and SA resolve from
 # clusterGroup.applications[applicationKey].ssCsiWorkloadAuth when set (see values-hub / values-group-one).
+# With roleSlug, roleName is <vaultKubernetesMountPath>-sscsi-<roleSlug> (same mount as ESO: hub or global.clusterDomain).
 ocpSecretsStoreCsiVault:
   applicationKey: openshift-sscsi-vault
   workloadAuthIndex: 0
@@ -59,8 +60,8 @@ ocpSecretsStoreCsiVault:
   vault:
     externalAddress: ""
     hubMountPath: hub
-  # Required: vp_sscsi_spc.secretproviderclass dereferences .auth.roleName (no default guard). Coalesce order is
-  # workload-derived role first, then this, then the literal hub-role in the template.
+  # Fallback when ssCsiWorkloadAuth has no roleSlug: hub uses this then hub-role; spoke uses <clusterDomain>-role (ESO-style).
+  # With roleSlug, workload-derived role is <mount>-sscsi-<roleSlug> (see vp-sscsi-spc README).
   auth:
     roleName: hub-role
   tls:

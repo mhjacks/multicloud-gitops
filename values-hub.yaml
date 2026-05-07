@@ -107,8 +107,8 @@ clusterGroup:
           limit: 20
         syncOptions:
           - RespectIgnoreDifferences=true
-      # rhvp.cluster_utils: vault_ss_csi_workload_auth reads this and creates Vault Kubernetes auth
-      # bindings for the workload ServiceAccount (when using stable_slug mode, align with chart defaults).
+      # rhvp.cluster_utils: vault_ss_csi_workload_auth reads this and creates Vault Kubernetes auth roles
+      # (<hub mount>-sscsi-<roleSlug>). vp-sscsi-spc uses the same mount + slug for hub SecretProviderClass.
       ssCsiWorkloadAuth:
         - serviceAccount: config-demo-sa
           namespace: config-demo
@@ -197,8 +197,8 @@ clusterGroup:
         - name: clusterGroup
           value: group-one
       # rhvp.cluster_utils vault_ss_csi_workload_auth reads values-hub.yaml (main.clusterGroupName), not
-      # values-group-one.yaml. Spoke roles: align `cluster` + roleSlug with Vault and with vp-sscsi-spc
-      # (<cluster>-sscsi-<roleSlug> when roleSlug is set). Mount path on spokes is global.clusterDomain (ACM).
+      # values-group-one.yaml. Spoke Vault roles use vault_path (FQDN); Ansible normalizes rows from this `cluster` hint.
+      # vp-sscsi-spc roleName = <vaultKubernetesMountPath>-sscsi-<roleSlug> (mount = global.clusterDomain on the spoke).
       applications:
         openshift-sscsi-vault-spoke:
           namespace: config-demo

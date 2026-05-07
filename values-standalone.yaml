@@ -78,6 +78,7 @@ clusterGroup:
           limit: 20
         syncOptions:
           - RespectIgnoreDifferences=true
+      # Hub-style SS-CSI: role hub-sscsi-<roleSlug> when vaultKubernetesMountPath resolves to hub (see vp-sscsi-spc).
       ssCsiWorkloadAuth:
         - serviceAccount: config-demo-sa
           namespace: config-demo

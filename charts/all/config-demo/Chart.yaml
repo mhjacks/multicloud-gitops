@@ -1,7 +1,8 @@
 apiVersion: v2
 description: >-
   Demo app using Vault via Secrets Store CSI; SecretProviderClass is rendered with the
-  vp-sscsi-spc chart (Validated Patterns chart repo) from clusterGroup workload auth metadata.
+  vp-sscsi-spc chart from clusterGroup workload auth metadata. SS-CSI Vault role names follow
+  <vaultKubernetesMountPath>-sscsi-<roleSlug> (hub mount or global.clusterDomain on spokes), matching rhvp.cluster_utils.
 home: https://github.com/validatedpatterns/multicloud-gitops
 keywords:
   - pattern
