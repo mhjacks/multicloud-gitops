@@ -9,6 +9,23 @@ vaultCaBundle:
   mountPath: /etc/pki/vault-ca
   bundleKey: ca-bundle.crt
 
+# Init container: fail the pod if Vault HTTPS cannot be verified with vaultCACertPath (SS-CSI + TLS verify on).
+vaultTlsPrecheck:
+  enabled: true
+  image:
+    repository: registry.access.redhat.com/ubi9/ubi
+    tag: "9.6-1755695352"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  # Seconds to wait for CNO-injected CA file before failing
+  caWaitSeconds: 120
+
 global:
   hubClusterDomain: hub.example.com
   localClusterDomain: region-one.example.com

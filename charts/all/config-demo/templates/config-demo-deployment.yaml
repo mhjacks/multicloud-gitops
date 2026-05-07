@@ -22,6 +22,57 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      {{- if eq (include "config-demo.vaultTlsPrecheckEnabled" .) "true" }}
+      initContainers:
+        - name: vault-tls-precheck
+          image: "{{ .Values.vaultTlsPrecheck.image.repository }}:{{ .Values.vaultTlsPrecheck.image.tag }}"
+          imagePullPolicy: {{ .Values.vaultTlsPrecheck.image.pullPolicy }}
+          env:
+            - name: VAULT_ADDR
+              value: {{ include "config-demo.vaultUrl" . | quote }}
+            - name: VAULT_CA_PATH
+              value: {{ .Values.ocpSecretsStoreCsiVault.tls.vaultCACertPath | quote }}
+            - name: CA_WAIT_SECONDS
+              value: {{ .Values.vaultTlsPrecheck.caWaitSeconds | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              echo "Waiting up to ${CA_WAIT_SECONDS}s for CA bundle at ${VAULT_CA_PATH}"
+              for ((i=0; i<CA_WAIT_SECONDS; i++)); do
+                if [[ -s "${VAULT_CA_PATH}" ]]; then
+                  break
+                fi
+                sleep 1
+              done
+              if [[ ! -s "${VAULT_CA_PATH}" ]]; then
+                echo "ERROR: CA bundle missing or empty at ${VAULT_CA_PATH}" >&2
+                exit 1
+              fi
+              echo "Verifying TLS to ${VAULT_ADDR} using ${VAULT_CA_PATH}"
+              # Do not use curl -f: Vault returns non-2xx for sealed/uninitialized; TLS success is enough.
+              if ! curl -g -sS --cacert "${VAULT_CA_PATH}" --connect-timeout 15 --max-time 45 \
+                  -o /dev/null "${VAULT_ADDR}/v1/sys/health"; then
+                echo "ERROR: could not complete TLS connection to Vault (check CA bundle vs Route cert)" >&2
+                exit 1
+              fi
+              echo "Vault TLS precheck passed."
+          volumeMounts:
+            - name: vault-tls-ca
+              mountPath: {{ .Values.vaultCaBundle.mountPath | quote }}
+              readOnly: true
+          resources:
+            {{- toYaml .Values.vaultTlsPrecheck.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+      {{- end }}
       containers:
       - name: apache
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
