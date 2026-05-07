@@ -82,18 +82,15 @@ clusterGroup:
       name: vp-manage-proxy-cluster-ca
       namespace: openshift-config
       argoProject: hub
-      repoURL: https://github.com/mhjacks/vp-manage-proxy-cluster-ca-chart.git
-      chartVersion: main
-      path: "."
+      chart: vp-manage-proxy-cluster-ca
+      chartVersion: 0.1.*
     # Cluster-wide Vault CSI (vault ns). Per-app SecretProviderClass: charts/all/config-demo (vp-sscsi-spc library).
     openshift-sscsi-vault:
       name: openshift-sscsi-vault-hubcluster
       namespace: vault
       argoProject: hub
-      repoURL: https://github.com/validatedpatterns/openshift-sscsi-vault-chart.git
-      path: "."
-      # multisource: chartVersion is Argo targetRevision for this repo (main branch).
-      chartVersion: main
+      chart: openshift-sscsi-vault
+      chartVersion: 0.2.*
       # CNO fills ConfigMap.data after apply; ignore whole data blob vs one key.
       ignoreDifferences:
         - group: ""

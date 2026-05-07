@@ -41,10 +41,9 @@ clusterGroup:
       name: openshift-sscsi-vault-group-one
       namespace: vault
       argoProject: hub
-      repoURL: https://github.com/validatedpatterns/openshift-sscsi-vault-chart.git
-      path: "."
+      chart: openshift-sscsi-vault
+      chartVersion: 0.2.*
       # multisource: chartVersion is Argo targetRevision for this repo (main branch).
-      chartVersion: main
       ignoreDifferences:
         - group: ""
           kind: ConfigMap
