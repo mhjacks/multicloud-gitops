@@ -14,7 +14,7 @@ vaultTlsPrecheck:
   enabled: true
   image:
     repository: registry.access.redhat.com/ubi9/ubi
-    tag: "9.6-1755695352"
+    tag: "latest"
     pullPolicy: IfNotPresent
   resources:
     requests:
