@@ -100,7 +100,7 @@ clusterGroup:
       enabled: true
       extraPlaybookArgs:
         - '-e'
-        - 'pattern_dir=/git/home'
+        - 'pattern_dir=/git/repo'
       ansibleCfgContent: |
         [defaults]
         localhost_warning=False

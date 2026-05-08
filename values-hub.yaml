@@ -143,7 +143,7 @@ clusterGroup:
     verbosity: '-vvv'
     extraPlaybookArgs:
       - '-e'
-      - 'pattern_dir=/git/home'
+      - 'pattern_dir=/git/repo'
     ansibleDevMode:
       enabled: true
       requirementsFile: requirements.yml
