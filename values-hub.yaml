@@ -148,6 +148,17 @@ clusterGroup:
         ---
         collections:
           - name: git+https://github.com/mhjacks/rhvp.cluster_utils.git,feature/sscsi-vp-proxy-cluster-ca-chart
+      ansibleCfgContent: |
+        [defaults]
+        localhost_warning=False
+        retry_files_enabled=False
+        # Retry files disabled to avoid cluttering CI/CD environments
+        interpreter_python=auto_silent
+        timeout=30
+        library=~/.ansible/plugins/modules:./ansible/plugins/modules:./common/ansible/plugins/modules:/usr/share/ansible/plugins/modules
+        roles_path=~/.ansible/roles:./ansible/roles:./common/ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles
+        filter_plugins=~/.ansible/plugins/filter:./ansible/plugins/filter:./common/ansible/plugins/filter:/usr/share/ansible/plugins/filter
+        collections_path=~/.ansible/collections:/usr/share/ansible/collections
     # clustergroup-chart replaces the default imperative ClusterRole rules when this is set (see
     # templates/imperative/clusterrole.yaml), so keep the chart default get/list/watch on * plus
     # create/update/patch on ConfigMaps cluster-wide (vault_ss_csi_* route CA ConfigMaps, etc.).
