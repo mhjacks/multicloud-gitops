@@ -96,11 +96,11 @@ clusterGroup:
       path: charts/all/hello-world
   imperative:
     verbosity: '-vvv'
+    extraPlaybookArgs:
+      - '-e'
+      - 'pattern_dir=/git/repo'
     ansibleDevMode:
       enabled: true
-      extraPlaybookArgs:
-        - '-e'
-        - 'pattern_dir=/git/repo'
       ansibleCfgContent: |
         [defaults]
         localhost_warning=False
