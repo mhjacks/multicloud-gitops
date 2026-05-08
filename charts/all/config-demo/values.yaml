@@ -24,10 +24,9 @@ vaultTlsPrecheck:
     limits:
       cpu: 200m
       memory: 128Mi
-  # Total wall time for CA file, Vault TLS checks, and CSI secret file readiness (must stay within podActiveDeadlineSeconds).
+  # Wall time for init precheck (CA file, Vault TLS, CSI secret file). Also sets Deployment progressDeadlineSeconds.
+  # Note: activeDeadlineSeconds is not allowed on pods under a Deployment on OpenShift.
   initDeadlineSeconds: 900
-  # Kill the pod if it does not finish scheduling + init + start within this window (covers stuck CSI mounts and slow init).
-  podActiveDeadlineSeconds: 900
   # Same path as the main container CSI mount; init verifies the secret file before apache starts.
   secretMountPath: /var/www/html/secret
   # If empty, uses the first ocpSecretsStoreCsiVault.objects[].objectName (file name at secretMountPath).

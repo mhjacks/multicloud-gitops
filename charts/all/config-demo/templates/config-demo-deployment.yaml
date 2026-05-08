@@ -7,6 +7,8 @@ metadata:
 spec:
   replicas: 2
   revisionHistoryLimit: 3
+  {{- /* ReplicaSet pods: activeDeadlineSeconds forbidden on OCP; progressDeadlineSeconds marks stalled rollouts. */}}
+  progressDeadlineSeconds: {{ int .Values.vaultTlsPrecheck.initDeadlineSeconds }}
   selector:
     matchLabels:
       deploymentconfig: config-demo
@@ -17,9 +19,6 @@ spec:
         deploymentconfig: config-demo
       name: config-demo
     spec:
-      {{- if and .Values.vaultTlsPrecheck.podActiveDeadlineSeconds (gt (int .Values.vaultTlsPrecheck.podActiveDeadlineSeconds) 0) }}
-      activeDeadlineSeconds: {{ int .Values.vaultTlsPrecheck.podActiveDeadlineSeconds }}
-      {{- end }}
       serviceAccountName: config-demo-sa
       securityContext:
         runAsNonRoot: true
