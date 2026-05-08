@@ -98,6 +98,7 @@ clusterGroup:
     verbosity: '-vvv'
     ansibleDevMode:
       enabled: true
+      extraPlaybookArgs: '-e pattern_dir=/git/home'
       ansibleCfgContent: |
         [defaults]
         localhost_warning=False
