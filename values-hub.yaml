@@ -141,7 +141,9 @@ clusterGroup:
       path: charts/all/hello-world
   imperative:
     verbosity: '-vvv'
-    extraPlaybookArgs: '-e pattern_dir=/git/home'
+    extraPlaybookArgs:
+      - '-e'
+      - 'pattern_dir=/git/home'
     ansibleDevMode:
       enabled: true
       requirementsFile: requirements.yml
