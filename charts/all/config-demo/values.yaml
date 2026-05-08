@@ -9,7 +9,8 @@ vaultCaBundle:
   mountPath: /etc/pki/vault-ca
   bundleKey: ca-bundle.crt
 
-# Init container: fail the pod if Vault HTTPS cannot be verified with vaultCACertPath (SS-CSI + TLS verify on).
+# Init container: fail the pod if Vault HTTPS cannot be verified with vaultCACertPath (SS-CSI + TLS verify on),
+# and if the Vault CSI secret file is missing (e.g. auth role not ready yet).
 vaultTlsPrecheck:
   enabled: true
   image:
@@ -23,8 +24,14 @@ vaultTlsPrecheck:
     limits:
       cpu: 200m
       memory: 128Mi
-  # Seconds to wait for CNO-injected CA file before failing
-  caWaitSeconds: 120
+  # Total wall time for CA file, Vault TLS checks, and CSI secret file readiness (must stay within podActiveDeadlineSeconds).
+  initDeadlineSeconds: 900
+  # Kill the pod if it does not finish scheduling + init + start within this window (covers stuck CSI mounts and slow init).
+  podActiveDeadlineSeconds: 900
+  # Same path as the main container CSI mount; init verifies the secret file before apache starts.
+  secretMountPath: /var/www/html/secret
+  # If empty, uses the first ocpSecretsStoreCsiVault.objects[].objectName (file name at secretMountPath).
+  secretObjectFileName: ""
 
 global:
   hubClusterDomain: hub.example.com

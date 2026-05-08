@@ -17,12 +17,16 @@ spec:
         deploymentconfig: config-demo
       name: config-demo
     spec:
+      {{- if and .Values.vaultTlsPrecheck.podActiveDeadlineSeconds (gt (int .Values.vaultTlsPrecheck.podActiveDeadlineSeconds) 0) }}
+      activeDeadlineSeconds: {{ int .Values.vaultTlsPrecheck.podActiveDeadlineSeconds }}
+      {{- end }}
       serviceAccountName: config-demo-sa
       securityContext:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
       {{- if eq (include "config-demo.vaultTlsPrecheckEnabled" .) "true" }}
+      {{- $obj0 := first .Values.ocpSecretsStoreCsiVault.objects }}
       initContainers:
         - name: vault-tls-precheck
           image: "{{ .Values.vaultTlsPrecheck.image.repository }}:{{ .Values.vaultTlsPrecheck.image.tag }}"
@@ -32,34 +36,51 @@ spec:
               value: {{ include "config-demo.vaultUrl" . | quote }}
             - name: VAULT_CA_PATH
               value: {{ .Values.ocpSecretsStoreCsiVault.tls.vaultCACertPath | quote }}
-            - name: CA_WAIT_SECONDS
-              value: {{ .Values.vaultTlsPrecheck.caWaitSeconds | quote }}
+            - name: INIT_DEADLINE_SECONDS
+              value: {{ .Values.vaultTlsPrecheck.initDeadlineSeconds | quote }}
+            - name: VAULT_SECRET_PATH
+              value: {{ printf "%s/%s" .Values.vaultTlsPrecheck.secretMountPath (.Values.vaultTlsPrecheck.secretObjectFileName | default $obj0.objectName) | quote }}
           command:
             - /bin/bash
             - -ec
             - |
-              echo "Waiting up to ${CA_WAIT_SECONDS}s for CA bundle at ${VAULT_CA_PATH}"
-              for ((i=0; i<CA_WAIT_SECONDS; i++)); do
-                if [[ -s "${VAULT_CA_PATH}" ]]; then
-                  break
+              set -euo pipefail
+              MAX="${INIT_DEADLINE_SECONDS}"
+              START="${SECONDS}"
+              check_deadline() {
+                if (( SECONDS - START >= MAX )); then
+                  echo "ERROR: config-demo init exceeded ${MAX}s (CA file, Vault TLS, or CSI secret not ready in time)" >&2
+                  exit 1
                 fi
+              }
+              echo "Waiting for non-empty CA bundle at ${VAULT_CA_PATH} (deadline ${MAX}s)"
+              while [[ ! -s "${VAULT_CA_PATH}" ]]; do
+                check_deadline
                 sleep 1
               done
-              if [[ ! -s "${VAULT_CA_PATH}" ]]; then
-                echo "ERROR: CA bundle missing or empty at ${VAULT_CA_PATH}" >&2
-                exit 1
-              fi
               echo "Verifying TLS to ${VAULT_ADDR} using ${VAULT_CA_PATH}"
               # Do not use curl -f: Vault returns non-2xx for sealed/uninitialized; TLS success is enough.
-              if ! curl -g -sS --cacert "${VAULT_CA_PATH}" --connect-timeout 15 --max-time 45 \
-                  -o /dev/null "${VAULT_ADDR}/v1/sys/health"; then
-                echo "ERROR: could not complete TLS connection to Vault (check CA bundle vs Route cert)" >&2
-                exit 1
-              fi
-              echo "Vault TLS precheck passed."
+              while true; do
+                if curl -g -sS --cacert "${VAULT_CA_PATH}" --connect-timeout 15 --max-time 45 \
+                    -o /dev/null "${VAULT_ADDR}/v1/sys/health"; then
+                  break
+                fi
+                check_deadline
+                echo "WARN: Vault TLS check failed, retrying..." >&2
+                sleep 3
+              done
+              echo "Waiting for Vault CSI secret file at ${VAULT_SECRET_PATH}"
+              while [[ ! -s "${VAULT_SECRET_PATH}" ]]; do
+                check_deadline
+                sleep 1
+              done
+              echo "Vault TLS and CSI secret precheck passed."
           volumeMounts:
             - name: vault-tls-ca
               mountPath: {{ .Values.vaultCaBundle.mountPath | quote }}
+              readOnly: true
+            - mountPath: {{ .Values.vaultTlsPrecheck.secretMountPath | quote }}
+              name: config-demo-secret
               readOnly: true
           resources:
             {{- toYaml .Values.vaultTlsPrecheck.resources | nindent 12 }}
@@ -154,7 +175,7 @@ spec:
           sources:
             - configMap:
                 name: {{ .Values.vaultCaBundle.configMapName }}
-                optional: true
+                optional: false
                 items:
                   - key: {{ .Values.vaultCaBundle.bundleKey }}
                     path: {{ .Values.vaultCaBundle.bundleKey }}
