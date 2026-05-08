@@ -1,6 +1,0 @@
-dependencies:
-- name: vp-sscsi-spc
-  repository: https://charts.validatedpatterns.io
-  version: 0.1.3
-digest: sha256:5c530675f0d7937e06ddd9db51d2bc0c12c678ec18bb7a29107aab8cbf637943
-generated: "2026-05-06T12:17:09.395468735-05:00"
