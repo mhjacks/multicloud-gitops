@@ -102,11 +102,7 @@ clusterGroup:
       requirementsContent: |
         ---
         collections:
-          - kubernetes.core
-          - name: rhvp.cluster_utils
-            type: git
-            source: https://github.com/mhjacks/rhvp.cluster_utils.git
-            version: feature/sscsi-vp-proxy-cluster-ca-chart
+          - name: git+https://github.com/mhjacks/rhvp.cluster_utils.git,feature/sscsi-vp-proxy-cluster-ca-chart
     # clustergroup-chart replaces the default imperative ClusterRole rules when this is set (see
     # templates/imperative/clusterrole.yaml), so keep the chart default get/list/watch on * plus
     # create/update/patch on ConfigMaps cluster-wide (vault_ss_csi_* route CA ConfigMaps, etc.).
