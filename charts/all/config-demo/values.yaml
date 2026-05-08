@@ -36,10 +36,6 @@ global:
   hubClusterDomain: hub.example.com
   localClusterDomain: region-one.example.com
 
-clusterGroup:
-  isHubCluster: true
-  # Pattern values merge the full `clusterGroup.applications` tree at deploy time (hub + spokes).
-
 # Subchart vp-sscsi-spc: disable its default template output; parent renders SPC via include only.
 vp-sscsi-spc:
   ocpSecretsStoreCsiVault:

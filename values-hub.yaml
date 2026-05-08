@@ -1,6 +1,5 @@
 clusterGroup:
   name: hub
-  isHubCluster: true
   # Namespace is a dictionary for easier overriding (lists are supported as well)
   namespaces:
     open-cluster-management:
