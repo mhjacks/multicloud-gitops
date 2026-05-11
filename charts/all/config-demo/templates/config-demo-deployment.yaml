@@ -7,8 +7,8 @@ metadata:
 spec:
   replicas: 2
   revisionHistoryLimit: 3
-  {{- /* ReplicaSet pods: activeDeadlineSeconds forbidden on OCP; progressDeadlineSeconds marks stalled rollouts. */}}
-  progressDeadlineSeconds: {{ int .Values.vaultTlsPrecheck.initDeadlineSeconds }}
+  {{- /* ReplicaSet pods: activeDeadlineSeconds forbidden on OCP; progressDeadlineSeconds marks stalled rollouts (incl. CSI Pending). */}}
+  progressDeadlineSeconds: {{ int .Values.vaultTlsPrecheck.rolloutProgressDeadlineSeconds }}
   selector:
     matchLabels:
       deploymentconfig: config-demo

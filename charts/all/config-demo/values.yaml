@@ -24,9 +24,14 @@ vaultTlsPrecheck:
     limits:
       cpu: 200m
       memory: 128Mi
-  # Wall time for init precheck (CA file, Vault TLS, CSI secret file). Also sets Deployment progressDeadlineSeconds.
+  # Wall time for init precheck once the pod has started (CSI volume mounted, init container running).
   # Note: activeDeadlineSeconds is not allowed on pods under a Deployment on OpenShift.
   initDeadlineSeconds: 900
+  # Deployment.spec.progressDeadlineSeconds. The kubelet mounts the CSI volume *before* any init runs; if the mount
+  # never succeeds, pods stay Pending and this is what fails the rollout (ProgressDeadlineExceeded) for Argo CD.
+  # Lower = surface failure sooner for retry. Raise above initDeadlineSeconds + realistic CSI + startup latency if
+  # healthy rollouts can be slower than this window (e.g. many replicas or slow Vault).
+  rolloutProgressDeadlineSeconds: 300
   # Same path as the main container CSI mount; init verifies the secret file before apache starts.
   secretMountPath: /var/www/html/secret
   # If empty, uses the first ocpSecretsStoreCsiVault.objects[].objectName (file name at secretMountPath).
