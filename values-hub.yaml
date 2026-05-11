@@ -111,7 +111,6 @@ clusterGroup:
       ssCsiWorkloadAuth:
         - serviceAccount: config-demo-sa
           namespace: config-demo
-          cluster: hub
           roleSlug: config-demo-config-demo-sa-config-demo
     config-demo:
       name: config-demo
