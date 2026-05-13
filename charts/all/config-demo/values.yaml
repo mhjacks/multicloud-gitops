@@ -9,6 +9,28 @@ vaultCaBundle:
   mountPath: /etc/pki/vault-ca
   bundleKey: ca-bundle.crt
 
+# CronJob: if the Deployment is stuck (ProgressDeadlineExceeded), run oc rollout restart.
+rolloutWatch:
+  enabled: true
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 300
+  # Pod activeDeadlineSeconds for each Job run (shell exits quickly when no action).
+  jobActiveDeadlineSeconds: 180
+  image:
+    repository: quay.io/openshift/origin-cli
+    tag: "4.17.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
 # Init container: fail the pod if Vault HTTPS cannot be verified with vaultCACertPath (SS-CSI + TLS verify on),
 # and if the Vault CSI secret file is missing (e.g. auth role not ready yet).
 vaultTlsPrecheck:
@@ -26,12 +48,10 @@ vaultTlsPrecheck:
       memory: 128Mi
   # Wall time for init precheck once the pod has started (CSI volume mounted, init container running).
   # Note: activeDeadlineSeconds is not allowed on pods under a Deployment on OpenShift.
-  initDeadlineSeconds: 900
-  # Deployment.spec.progressDeadlineSeconds. The kubelet mounts the CSI volume *before* any init runs; if the mount
-  # never succeeds, pods stay Pending and this is what fails the rollout (ProgressDeadlineExceeded) for Argo CD.
-  # Lower = surface failure sooner for retry. Raise above initDeadlineSeconds + realistic CSI + startup latency if
-  # healthy rollouts can be slower than this window (e.g. many replicas or slow Vault).
-  rolloutProgressDeadlineSeconds: 300
+  initDeadlineSeconds: 120
+  # Deployment.spec.progressDeadlineSeconds (not pod activeDeadlineSeconds). Marks stalled rollouts; rolloutWatch
+  # restarts when reason is ProgressDeadlineExceeded. Keep aligned with initDeadlineSeconds + CSI mount headroom.
+  rolloutProgressDeadlineSeconds: 120
   # Same path as the main container CSI mount; init verifies the secret file before apache starts.
   secretMountPath: /var/www/html/secret
   # If empty, uses the first ocpSecretsStoreCsiVault.objects[].objectName (file name at secretMountPath).
