@@ -72,7 +72,7 @@ vp-sscsi-spc:
 # clusterGroup.applications[applicationKey].ssCsiWorkloadAuth when set (see values-hub / values-group-one).
 # With roleSlug, roleName is <vaultKubernetesMountPath>-sscsi-<roleSlug> (same mount as ESO: hub or global.clusterDomain).
 ocpSecretsStoreCsiVault:
-  applicationKey: openshift-sscsi-vault
+  applicationKey: config-demo
   workloadAuthIndex: 0
   secretProviderClass:
     installDefaultManifests: true
