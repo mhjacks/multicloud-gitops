@@ -9,6 +9,19 @@ vaultCaBundle:
   mountPath: /etc/pki/vault-ca
   bundleKey: ca-bundle.crt
 
+# Second workload (config-demo2): separate Deployment, SA, SPC (same Vault objects as primary),
+# and rollout CronJob. SPC is rendered via vp_sscsi_spc with workloadAuthIndex 1 (see
+# clusterGroup.applications.config-demo.ssCsiWorkloadAuth[1] in values-hub / group-one / standalone).
+configDemo2:
+  enabled: true
+
+# Overrides merged into a copy of ocpSecretsStoreCsiVault for the second SecretProviderClass
+# (vp-sscsi-spc 0.2.x / multiple workloads: distinct SPC per serviceAccount + workloadAuthIndex).
+ocpSecretsStoreCsiVault2:
+  workloadAuthIndex: 1
+  secretProviderClass:
+    name: config-demo2-vault-csi
+
 # CronJob: if the Deployment is stuck (ProgressDeadlineExceeded), run oc rollout restart.
 rolloutWatch:
   enabled: true
@@ -60,6 +73,12 @@ vaultTlsPrecheck:
 global:
   hubClusterDomain: hub.example.com
   localClusterDomain: region-one.example.com
+  # Spoke-style default for helm template/lint (pattern sets from ACM; without apps. prefix per clustergroup-chart).
+  clusterDomain: region-one.example.com
+
+# Pattern values merge full clusterGroup at deploy time; minimal shape for helm lint/template without pattern overlays.
+clusterGroup:
+  applications: {}
 
 # Subchart vp-sscsi-spc: disable its default template output; parent renders SPC via include only.
 vp-sscsi-spc:

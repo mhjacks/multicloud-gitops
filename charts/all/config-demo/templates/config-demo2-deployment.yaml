@@ -1,0 +1,188 @@
+{{- if .Values.configDemo2.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    application: config-demo2
+  name: config-demo2
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  {{- /* ReplicaSet pods: activeDeadlineSeconds forbidden on OCP; progressDeadlineSeconds marks stalled rollouts (incl. CSI Pending). */}}
+  progressDeadlineSeconds: {{ int .Values.vaultTlsPrecheck.rolloutProgressDeadlineSeconds }}
+  selector:
+    matchLabels:
+      deploymentconfig: config-demo2
+  template:
+    metadata:
+      labels:
+        app: config-demo2
+        deploymentconfig: config-demo2
+      name: config-demo2
+    spec:
+      serviceAccountName: config-demo2-sa
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      {{- if eq (include "config-demo.vaultTlsPrecheckEnabled" .) "true" }}
+      {{- $obj0 := first .Values.ocpSecretsStoreCsiVault.objects }}
+      initContainers:
+        - name: vault-tls-precheck
+          image: "{{ .Values.vaultTlsPrecheck.image.repository }}:{{ .Values.vaultTlsPrecheck.image.tag }}"
+          imagePullPolicy: {{ .Values.vaultTlsPrecheck.image.pullPolicy }}
+          env:
+            - name: VAULT_ADDR
+              value: {{ include "config-demo.vaultUrl" . | quote }}
+            - name: VAULT_CA_PATH
+              value: {{ .Values.ocpSecretsStoreCsiVault.tls.vaultCACertPath | quote }}
+            - name: INIT_DEADLINE_SECONDS
+              value: {{ .Values.vaultTlsPrecheck.initDeadlineSeconds | quote }}
+            - name: VAULT_SECRET_PATH
+              value: {{ printf "%s/%s" .Values.vaultTlsPrecheck.secretMountPath (.Values.vaultTlsPrecheck.secretObjectFileName | default $obj0.objectName) | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              set -euo pipefail
+              MAX="${INIT_DEADLINE_SECONDS}"
+              START="${SECONDS}"
+              check_deadline() {
+                if (( SECONDS - START >= MAX )); then
+                  echo "ERROR: config-demo2 init exceeded ${MAX}s (CA file, Vault TLS, or CSI secret not ready in time)" >&2
+                  exit 1
+                fi
+              }
+              echo "Waiting for non-empty CA bundle at ${VAULT_CA_PATH} (deadline ${MAX}s)"
+              while [[ ! -s "${VAULT_CA_PATH}" ]]; do
+                check_deadline
+                sleep 1
+              done
+              echo "Verifying TLS to ${VAULT_ADDR} using ${VAULT_CA_PATH}"
+              while true; do
+                if curl -g -sS --cacert "${VAULT_CA_PATH}" --connect-timeout 15 --max-time 45 \
+                    -o /dev/null "${VAULT_ADDR}/v1/sys/health"; then
+                  break
+                fi
+                check_deadline
+                echo "WARN: Vault TLS check failed, retrying..." >&2
+                sleep 3
+              done
+              echo "Waiting for Vault CSI secret file at ${VAULT_SECRET_PATH}"
+              while [[ ! -s "${VAULT_SECRET_PATH}" ]]; do
+                check_deadline
+                sleep 1
+              done
+              echo "Vault TLS and CSI secret precheck passed."
+          volumeMounts:
+            - name: vault-tls-ca
+              mountPath: {{ .Values.vaultCaBundle.mountPath | quote }}
+              readOnly: true
+            - mountPath: {{ .Values.vaultTlsPrecheck.secretMountPath | quote }}
+              name: config-demo2-secret
+              readOnly: true
+          resources:
+            {{- toYaml .Values.vaultTlsPrecheck.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+      {{- end }}
+      containers:
+      - name: apache
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: config-demo-configmap
+        - mountPath: /var/www/html/secret
+          readOnly: true
+          name: config-demo2-secret
+        {{- if .Values.vaultCaBundle.enabled }}
+        - mountPath: {{ .Values.vaultCaBundle.mountPath | quote }}
+          name: vault-tls-ca
+          readOnly: true
+        {{- end }}
+        - mountPath: /tmp
+          name: tmp-volume
+        - mountPath: /var/cache/httpd
+          name: cache-volume
+        - mountPath: /var/run/httpd
+          name: run-volume
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        livenessProbe:
+          httpGet:
+            path: /index.html
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /index.html
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+      volumes:
+      - name: config-demo-configmap
+        configMap:
+          defaultMode: 438
+          name: config-demo-configmap
+      - name: config-demo2-secret
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: {{ .Values.ocpSecretsStoreCsiVault2.secretProviderClass.name }}
+      {{- if .Values.vaultCaBundle.enabled }}
+      - name: vault-tls-ca
+        projected:
+          defaultMode: 420
+          sources:
+            - configMap:
+                name: {{ .Values.vaultCaBundle.configMapName }}
+                optional: false
+                items:
+                  - key: {{ .Values.vaultCaBundle.bundleKey }}
+                    path: {{ .Values.vaultCaBundle.bundleKey }}
+      {{- end }}
+      - name: tmp-volume
+        emptyDir: {}
+      - name: cache-volume
+        emptyDir: {}
+      - name: run-volume
+        emptyDir: {}
+{{- end }}

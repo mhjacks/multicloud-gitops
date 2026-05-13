@@ -84,6 +84,10 @@ clusterGroup:
           namespace: config-demo
           cluster: hub
           roleSlug: config-demo-config-demo-sa-config-demo
+        - serviceAccount: config-demo2-sa
+          namespace: config-demo
+          cluster: hub
+          roleSlug: config-demo-config-demo2-sa-config-demo
     config-demo:
       name: config-demo
       namespace: config-demo

@@ -1,0 +1,8 @@
+{{- if .Values.configDemo2.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: config-demo2-sa
+  labels:
+    app: config-demo2
+{{- end }}

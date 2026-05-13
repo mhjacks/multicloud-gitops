@@ -7,12 +7,13 @@ home: https://github.com/validatedpatterns/multicloud-gitops
 keywords:
   - pattern
 name: config-demo
-version: 0.0.2
-# vp-sscsi-spc: Validated Patterns Helm repo (https://charts.validatedpatterns.io). Requires a local repo named
-# `validatedpatterns` (e.g. `helm repo add validatedpatterns https://charts.validatedpatterns.io`). The @ alias avoids
-# "chart not found" when several repo entries share that URL. Pair with openshift-sscsi-vault-chart at `chartVersion: main`.
-# Run `helm dependency update` before `helm lint` / `helm template` (charts/*.tgz is gitignored).
+version: 0.0.3
+# vp-sscsi-spc: Validated Patterns Helm repo (https://charts.validatedpatterns.io). For local `helm lint`, the library
+# is vendored under charts/vp-sscsi-spc (see Chart.yaml file:// dependency); refresh with `helm pull validatedpatterns/vp-sscsi-spc --version 0.1.13 --untar -d charts` after deleting charts/vp-sscsi-spc.
+# Pair with openshift-sscsi-vault-chart at `chartVersion: main`.
+# Multiple SPCs per app chart: merge ocpSecretsStoreCsiVault with ocpSecretsStoreCsiVault2 (workloadAuthIndex, SPC name)
+# and render a second include — aligned with vp-sscsi-spc 0.2.x multi-workload semantics (see chart README workloadAuthIndex).
 dependencies:
   - name: vp-sscsi-spc
-    version: "0.1.*"
-    repository: "https://charts.validatedpatterns.io"
+    version: "0.1.13"
+    repository: "file://charts/vp-sscsi-spc"

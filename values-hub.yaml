@@ -132,6 +132,9 @@ clusterGroup:
         - serviceAccount: config-demo-sa
           namespace: config-demo
           roleSlug: config-demo-config-demo-sa-config-demo
+        - serviceAccount: config-demo2-sa
+          namespace: config-demo
+          roleSlug: config-demo-config-demo2-sa-config-demo
     hello-world:
       name: hello-world
       namespace: hello-world
