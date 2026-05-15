@@ -10,6 +10,7 @@ clusterGroup:
     external-secrets:
     config-demo:
     hello-world:
+    vp-stakater-reloader:
   subscriptions:
     acm:
       name: advanced-cluster-management
@@ -74,6 +75,16 @@ clusterGroup:
       namespace: hello-world
       argoProject: hello-world
       path: charts/all/hello-world
+    vp-stakater-reloader:
+      name: vp-stakater-reloader
+      namespace: vp-stakater-reloader
+      argoProject: hub
+      repoURL: https://github.com/mhjacks/vp-stakater-reloader-chart.git
+      chartVersion: main
+      path: "."
+      overrides:
+        - name: reloader.reloader.deployment.securityContext.runAsUser
+          value: "null"
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
