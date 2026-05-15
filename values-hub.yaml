@@ -145,6 +145,9 @@ clusterGroup:
       repoURL: https://github.com/mhjacks/vp-stakater-reloader-chart.git
       chartVersion: main
       path: "."
+      overrides:
+        - name: reloader.reloader.deployment.securityContext.runAsUser
+          value: "null"
   imperative:
     verbosity: '-vvv'
     extraPlaybookArgs:
