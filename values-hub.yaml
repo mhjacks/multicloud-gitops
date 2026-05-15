@@ -13,6 +13,7 @@ clusterGroup:
     external-secrets:
     config-demo:
     hello-world:
+    vp-stakater-reloader:
   subscriptions:
     acm:
       name: advanced-cluster-management
@@ -137,6 +138,13 @@ clusterGroup:
       namespace: hello-world
       argoProject: hello-world
       path: charts/all/hello-world
+    vp-stakater-reloader:
+      name: vp-stakater-reloader
+      namespace: vp-stakater-reloader
+      argoProject: hub
+      repoURL: https://github.com/mhjacks/vp-stakater-reloader-chart.git
+      chartVersion: main
+      path: "."
   imperative:
     verbosity: '-vvv'
     extraPlaybookArgs:
