@@ -12,6 +12,8 @@ spec:
       deploymentconfig: config-demo
   template:
     metadata:
+      annotations:
+        reloader.stakater.com/auto: "true"
       labels:
         app: config-demo
         deploymentconfig: config-demo
