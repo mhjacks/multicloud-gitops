@@ -82,9 +82,9 @@ clusterGroup:
       repoURL: https://github.com/mhjacks/vp-stakater-reloader-chart.git
       chartVersion: main
       path: "."
-      overrides:
-        - name: reloader.reloader.deployment.securityContext.runAsUser
-          value: "null"
+#      overrides:
+#        - name: reloader.reloader.deployment.securityContext.runAsUser
+#          value: "null"
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
