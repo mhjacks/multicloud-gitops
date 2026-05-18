@@ -10,6 +10,7 @@ clusterGroup:
     external-secrets:
     config-demo:
     hello-world:
+    vp-s4-storage:
   subscriptions:
     acm:
       name: advanced-cluster-management
@@ -74,6 +75,13 @@ clusterGroup:
       namespace: hello-world
       argoProject: hello-world
       path: charts/all/hello-world
+    vp-s4-storage:
+      name: vp-s4-storage
+      namespace: vp-s4-storage
+      argoProject: hub
+      path: "."
+      repoURL: https://github.com/mhjacks/vp-s4-storage-chart.git
+      chartVersion: main
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
