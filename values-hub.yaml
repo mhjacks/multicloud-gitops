@@ -80,7 +80,7 @@ clusterGroup:
       namespace: vp-s4-storage
       argoProject: hub
       path: "."
-      repoURL: https://github.com/validatedpatterns/vp-f4-storage-chart.git
+      repoURL: https://github.com/validatedpatterns/vp-s4-storage-chart.git
       chartVersion: main
       #chart: vp-s4-storage
       #chartVersion: 0.1.*
