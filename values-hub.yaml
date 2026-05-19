@@ -88,10 +88,9 @@ clusterGroup:
     vp-s4-storage:
       name: vp-s4-storage
       namespace: vp-s4-storage
+      chart: vp-s4-storage
       argoProject: hub
-      path: "."
-      repoURL: https://github.com/validatedpatterns/vp-s4-storage-chart.git
-      chartVersion: main
+      chartVersion: 0.2.*
       overrides:
         - name: s4Role.buckets[0]
           value: test-bucket
