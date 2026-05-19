@@ -79,8 +79,11 @@ clusterGroup:
       name: vp-s4-storage
       namespace: vp-s4-storage
       argoProject: hub
-      chart: vp-s4-storage
-      chartVersion: 0.1.*
+      path: "."
+      repoURL: https://github.com/validatedpatterns/vp-f4-storage-chart.git
+      chartVersion: main
+      #chart: vp-s4-storage
+      #chartVersion: 0.1.*
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
