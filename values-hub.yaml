@@ -11,6 +11,7 @@ clusterGroup:
     config-demo:
     hello-world:
     vp-s4-storage:
+    vp-stakater-reloader:
   subscriptions:
     acm:
       name: advanced-cluster-management
@@ -65,6 +66,15 @@ clusterGroup:
       argoProject: hub
       chart: openshift-external-secrets
       chartVersion: 0.0.*
+    vp-stakater-reloader:
+      name: vp-stakater-reloader
+      namespace: vp-stakater-reloader
+      argoProject: hub
+      chart: vp-stakater-reloader
+      chartVersion: 0.1.*
+      overrides:
+        - name: reloader.reloader.deployment.securityContext.runAsUser
+          value: "null"
     config-demo:
       name: config-demo
       namespace: config-demo
