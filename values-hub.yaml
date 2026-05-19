@@ -92,6 +92,11 @@ clusterGroup:
       path: "."
       repoURL: https://github.com/validatedpatterns/vp-s4-storage-chart.git
       chartVersion: main
+      overrides:
+        - name: s4Role.buckets[0]
+          value: test-bucket
+        - name: s4Role.buckets[1]
+          value: test-second-bucket
       #chart: vp-s4-storage
       #chartVersion: 0.1.*
   imperative:
