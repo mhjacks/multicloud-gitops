@@ -10,7 +10,12 @@ clusterGroup:
     external-secrets:
     config-demo:
     hello-world:
+    cert-manager:
   subscriptions:
+    cert-manager:
+      name: cert-manager
+      namespace: cert-manager
+      channel: stable-v1
     acm:
       name: advanced-cluster-management
       namespace: open-cluster-management
