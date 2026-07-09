@@ -11,6 +11,8 @@ clusterGroup:
     config-demo:
     hello-world:
     cert-manager-operator:
+      operatorGroup: true
+      targetNamespaces: []
   subscriptions:
     cert-manager:
       name: cert-manager-operator
