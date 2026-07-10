@@ -20,9 +20,9 @@ clusterGroup:
       namespace: cert-manager-operator
       channel: stable-v1
       config:
-      env:
-        - name: UNSUPPORTED_ADDON_FEATURES
-          value: TrustManager=true
+        env:
+          - name: UNSUPPORTED_ADDON_FEATURES
+            value: TrustManager=true
     acm:
       name: advanced-cluster-management
       namespace: open-cluster-management
