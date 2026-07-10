@@ -2,7 +2,7 @@ clusterGroup:
   name: hub
   # Namespace is a dictionary for easier overriding (lists are supported as well)
   namespaces:
-    vp-manage-proxycluster-ca:
+    vp-manage-proxy-cluster-ca:
     open-cluster-management:
     vault:
     external-secrets-operator:
