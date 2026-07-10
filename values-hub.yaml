@@ -2,6 +2,7 @@ clusterGroup:
   name: hub
   # Namespace is a dictionary for easier overriding (lists are supported as well)
   namespaces:
+    vp-manage-proxycluster-ca:
     open-cluster-management:
     vault:
     external-secrets-operator:
@@ -71,6 +72,14 @@ clusterGroup:
       argoProject: hub
       chart: openshift-external-secrets
       chartVersion: 0.0.*
+    vp-cluster-truster:
+      name: vp-manage-proxy-cluster-ca
+      namespace: vp-manage-proxy-cluster-ca
+      # chart: vp-manage-proxy-cluster-ca
+      # chartVersion: 0.2.*
+      path: "."
+      repoURL: https://github.com/mhjacks/vp-manage-proxy-cluster-ca-chart.git
+      chartVersion: refactor/trust-manager-bundle
     config-demo:
       name: config-demo
       namespace: config-demo
