@@ -9,11 +9,18 @@ clusterGroup:
       operatorGroup: true
       targetNamespaces: []
     external-secrets:
+    cert-manager-operator:
+      operatorGroup: true
+      targetNamespaces: []
   # The gitops subscription on spokes gets managed by ACM
   subscriptions:
     eso:
       name: openshift-external-secrets-operator
       namespace: external-secrets-operator
+      channel: stable-v1
+    cert-manager:
+      name: openshift-cert-manager-operator
+      namespace: cert-manager-operator
       channel: stable-v1
   argoProjects:
     - eso
