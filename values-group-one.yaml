@@ -4,7 +4,11 @@ clusterGroup:
   namespaces:
     vp-manage-proxy-cluster-ca:
     config-demo:
+      labels:
+        cluster-ca.vp.io/trust-bundle-target: "true"
     hello-world:
+      labels:
+        cluster-ca.vp.io/trust-bundle-target: "true"
     external-secrets-operator:
       operatorGroup: true
       targetNamespaces: []
