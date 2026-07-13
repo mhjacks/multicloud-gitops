@@ -69,18 +69,6 @@ clusterGroup:
         # per playbook timeout in seconds
         timeout: 234
         # verbosity: "-v"
-  extraObjects:
-    trust-manager:
-      apiVersion: operator.openshift.io/v1alpha1
-      kind: TrustManager
-      metadata:
-        name: cluster
-      spec:
-        trustManagerConfig:
-          trustNamespace: cert-manager
-          filterExpiredCertificates: Enabled
-          defaultCAPackage:
-            policy: Enabled
   # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
   # We can use self-referential variables because the chart calls the tpl function with these variables defined
   sharedValueFiles:
