@@ -1,3 +1,16 @@
+---
+trustTest:
+  enabled: true
+  namespaces:
+    - config-demo
+    - name: hello-world
+      route:
+        name: hello-world
+        namespace: hello-world
+  route:
+    name: config-demo
+    namespace: config-demo
+
 clusterGroup:
   name: group-one
   # Namespace is a dictionary for easier overriding (lists are supported as well)
