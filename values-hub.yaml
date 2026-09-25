@@ -93,7 +93,7 @@ clusterGroup:
       # chartVersion: 0.2.*
       path: "."
       repoURL: https://github.com/mhjacks/vp-manage-proxy-cluster-ca-chart.git
-      chartVersion: refactor/trust-manager-bundle
+      chartVersion: fix_oc_image
     config-demo:
       name: config-demo
       namespace: config-demo
