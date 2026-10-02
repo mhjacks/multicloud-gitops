@@ -7,7 +7,7 @@ global:
     syncPolicy: Automatic
     installPlanApproval: Automatic
 main:
-  variant: hub
+  variant: odf-quay
   multiSourceConfig:
     enabled: true
     clusterGroupChartVersion: "0.9.*"
