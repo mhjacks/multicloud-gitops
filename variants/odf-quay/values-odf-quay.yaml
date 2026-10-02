@@ -41,11 +41,11 @@ clusterGroup:
       name: openshift-external-secrets-operator
       namespace: external-secrets-operator
       channel: stable-v1
-    odf:
-      name: odf-operator
-      namespace: openshift-storage
-      annotations:
-        argocd.argoproj.io/sync-wave: "27"
+#    odf:
+#      name: odf-operator
+#      namespace: openshift-storage
+#      annotations:
+#        argocd.argoproj.io/sync-wave: "27"
     quay-operator:
       name: quay-operator
       namespace: openshift-operators
@@ -121,11 +121,6 @@ clusterGroup:
       chartVersion: expansion
       annotations:
         argocd.argoproj.io/sync-wave: "41"
-      overrides:
-        - name: job.image
-          value: "registry.redhat.io/openshift4/ose-cli-rhel9:latest"
-        - name: job.resources.limits.memory
-          value: "512Mi"
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
