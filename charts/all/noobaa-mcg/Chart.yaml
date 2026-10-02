@@ -1,9 +1,0 @@
-apiVersion: v2
-name: noobaa-mcg
-description: Standalone NooBaa Multicloud Object Gateway (MCG) for Quay - Lightweight S3-compatible Object Storage
-type: application
-version: 0.1.0
-appVersion: "5.15"
-maintainers:
-  - name: Zero Trust Validated Patterns Team
-    email: ztvp-arch-group@redhat.com

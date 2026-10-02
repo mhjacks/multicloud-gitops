@@ -118,7 +118,7 @@ clusterGroup:
       argoProject: hub
       repoURL: https://github.com/mhjacks/quay-chart.git
       path: "."
-      chartVersion: main
+      chartVersion: expansion
       annotations:
         argocd.argoproj.io/sync-wave: "41"
       overrides:
