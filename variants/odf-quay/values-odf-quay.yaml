@@ -41,11 +41,11 @@ clusterGroup:
       name: openshift-external-secrets-operator
       namespace: external-secrets-operator
       channel: stable-v1
-#    odf:
-#      name: odf-operator
-#      namespace: openshift-storage
-#      annotations:
-#        argocd.argoproj.io/sync-wave: "27"
+    odf:
+      name: odf-operator
+      namespace: openshift-storage
+      annotations:
+        argocd.argoproj.io/sync-wave: "27"
     quay-operator:
       name: quay-operator
       namespace: openshift-operators
