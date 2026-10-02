@@ -76,3 +76,5 @@ variants:
     description: Default multicluster hub/spoke Multicloud Gitops variant
   - name: standalone
     description: Single cluster Multicloud Gitops (no ACM) variant
+  - name: odf-quay
+    description: Hub variant with OpenShift Data Foundation (NooBaa MCG) and Red Hat Quay
