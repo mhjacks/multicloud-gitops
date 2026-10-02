@@ -105,13 +105,6 @@ clusterGroup:
       namespace: hello-world
       argoProject: hello-world
       path: charts/all/hello-world
-    noobaa-mcg:
-      name: noobaa-mcg
-      namespace: openshift-storage
-      argoProject: hub
-      path: charts/all/noobaa-mcg
-      annotations:
-        argocd.argoproj.io/sync-wave: "36"
     quay-registry:
       name: quay-registry
       namespace: quay-enterprise
