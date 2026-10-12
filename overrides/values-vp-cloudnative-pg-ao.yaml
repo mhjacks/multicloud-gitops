@@ -1,0 +1,51 @@
+# Overrides for vp-cloudnative-pg-cluster sized for Automation Orchestrator.
+# Matches the chart README example and AO defaults:
+#   host orchestrator-postgres-rw.automation-orchestrator.svc
+#   secrets orchestrator-postgres-secret / temporal-postgres-secret
+#   CA secret orchestrator-postgres-ca
+#
+# Red Hat does not support CloudNativePG. Prefer an externally supported
+# PostgreSQL 15 instance when a supported database is required.
+
+secrets:
+  enabled: true
+  keyPrefix: secret/data/hub
+  additional:
+    - temporal-visibility-postgres-secret
+
+cluster:
+  # Align Cluster / Services / CA secret names with automation-orchestrator defaults.
+  fullnameOverride: orchestrator-postgres
+  type: postgresql
+  mode: standalone
+  version:
+    postgresql: "15"
+  databases:
+    - name: temporal
+      owner: temporal
+    - name: temporal_visibility
+      owner: temporal
+  cluster:
+    instances: 1
+    storage:
+      size: 5Gi
+    postgresql:
+      parameters:
+        max_connections: "200"
+    initdb:
+      database: orchestrator
+      owner: orchestrator
+      secret:
+        name: orchestrator-postgres-secret
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS pgcrypto;
+    roles:
+      - name: temporal
+        ensure: present
+        login: true
+        passwordSecret:
+          name: temporal-postgres-secret
+    annotations:
+      argocd.argoproj.io/sync-wave: "1"
+  backups:
+    enabled: false

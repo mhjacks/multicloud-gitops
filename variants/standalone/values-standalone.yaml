@@ -8,15 +8,24 @@ clusterGroup:
     external-secrets:
     config-demo:
     hello-world:
+    automation-orchestrator:
   subscriptions:
     eso:
       name: openshift-external-secrets-operator
       namespace: external-secrets-operator
       channel: stable-v1
+    # CloudNativePG operator (cluster-scoped). Namespace/OperatorGroup for
+    # openshift-operators already exist on the cluster.
+    cloudnative-pg:
+      name: cloudnative-pg
+      namespace: openshift-operators
+      channel: stable-v1
+      source: certified-operators
   argoProjects:
     - hub
     - config-demo
     - hello-world
+    - automation-orchestrator
   # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
   # We can use self-referential variables because the chart calls the tpl function with these variables defined
   sharedValueFiles:
@@ -51,6 +60,18 @@ clusterGroup:
       namespace: hello-world
       argoProject: hello-world
       path: charts/all/hello-world
+    # VP wrapper around upstream CloudNativePG cluster chart (under development).
+    # Operator subscription and namespace are ClusterGroup concerns above.
+    # AO-oriented values live in overrides/values-vp-cloudnative-pg-ao.yaml.
+    vp-cloudnative-pg-cluster:
+      name: vp-cloudnative-pg-cluster
+      namespace: automation-orchestrator
+      argoProject: automation-orchestrator
+      repoURL: https://github.com/mhjacks/vp-cloudnative-pg-cluster-chart.git
+      chartVersion: main
+      path: "."
+      extraValueFiles:
+        - /overrides/values-vp-cloudnative-pg-ao.yaml
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
