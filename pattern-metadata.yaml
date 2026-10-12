@@ -77,4 +77,4 @@ variants:
   - name: standalone
     description: Single cluster Multicloud Gitops (no ACM) variant
   - name: odf-quay
-    description: Hub variant with OpenShift Data Foundation (NooBaa MCG) and Red Hat Quay
+    description: Hub variant with OpenShift Data Foundation and Red Hat Quay. Quay stores images on the ODF Ceph RGW S3 storage class

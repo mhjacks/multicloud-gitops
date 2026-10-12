@@ -1,7 +1,7 @@
-# Hub variant with OpenShift Data Foundation (NooBaa MCG) and Red Hat Quay.
+# Hub variant with OpenShift Data Foundation and Red Hat Quay.
 # Select it by setting main.variant to odf-quay in values-global.yaml.
-# ODF and Quay follow the layered-zero-trust storage and registry shape:
-# the ODF operator, a standalone NooBaa MCG, then the Quay operator and registry.
+# The ODF operator and openshift-data-foundations chart provide Ceph RGW S3.
+# Quay uses that storage class and does not deploy its own object gateway.
 clusterGroup:
   name: odf-quay
   # Namespace is a dictionary for easier overriding (lists are supported as well)
@@ -15,7 +15,7 @@ clusterGroup:
     config-demo:
     hello-world:
     # ODF operator namespace. OwnNamespace OperatorGroup so ODF installs here.
-    # NooBaa MCG in this namespace is the S3 backend for Quay.
+    # The openshift-data-foundations chart creates the Ceph RGW S3 backend for Quay.
     openshift-storage:
       operatorGroup: true
       targetNamespaces:
@@ -105,6 +105,20 @@ clusterGroup:
       namespace: hello-world
       argoProject: hello-world
       path: charts/all/hello-world
+    # Full ODF StorageCluster, including Ceph RGW object storage.
+    # Syncs after the operator subscription and before Quay.
+    odf:
+      name: odf
+      namespace: openshift-storage
+      argoProject: hub
+      chart: openshift-data-foundations
+      chartVersion: 0.3.*
+      annotations:
+        argocd.argoproj.io/sync-wave: "30"
+      overrides:
+        # Label every worker. The chart default looks for nodes named nodeA, nodeB, and nodeC.
+        - name: storageSystem.inventory.useSpecificNodes
+          value: "false"
     quay-registry:
       name: quay-registry
       namespace: quay-enterprise
@@ -114,6 +128,13 @@ clusterGroup:
       chartVersion: expansion
       annotations:
         argocd.argoproj.io/sync-wave: "41"
+      overrides:
+        # Leave the standalone Multicloud Object Gateway undeployed and claim a
+        # bucket from the ODF chart's Ceph RGW storage class (odf.storageClass.name).
+        - name: objectStorage.mode
+          value: odf
+        - name: objectStorage.objectBucketClaim.storageClass
+          value: ocs-storagecluster-ceph-rgw
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
