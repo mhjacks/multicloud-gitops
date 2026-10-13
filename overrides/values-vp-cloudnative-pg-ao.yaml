@@ -32,6 +32,23 @@ cluster:
     postgresql:
       parameters:
         max_connections: "200"
+    # Additional managed Services (passthrough to CNPG managed.services).
+    # Databases share the Cluster endpoint; one RW LoadBalancer covers
+    # orchestrator, temporal, and temporal_visibility.
+    # See https://cloudnative-pg.io/documentation/current/service_management/
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: orchestrator-postgres-lb
+            spec:
+              type: LoadBalancer
+              ports:
+                - name: postgres
+                  port: 5432
+                  targetPort: 5432
+                  protocol: TCP
     initdb:
       database: orchestrator
       owner: orchestrator
