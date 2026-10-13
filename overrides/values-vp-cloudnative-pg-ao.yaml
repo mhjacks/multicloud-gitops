@@ -42,6 +42,13 @@ cluster:
           serviceTemplate:
             metadata:
               name: orchestrator-postgres-lb
+              # Opt in to Validated Patterns External DNS (external-dns-operator chart).
+              # Default FQDN: <service-name>.<global.clusterDomain>
+              labels:
+                external-dns.validatedpatterns.io/publish: "yes"
+              # Optional: override the generated name (hostnameAnnotation: Allow).
+              # annotations:
+              #   external-dns.alpha.kubernetes.io/hostname: postgres.apps.example.com
             spec:
               type: LoadBalancer
               ports:
