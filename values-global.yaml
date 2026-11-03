@@ -11,4 +11,4 @@ main:
   multiSourceConfig:
     enabled: true
     clusterGroupGitRepoUrl: https://github.com/mhjacks/clustergroup-chart.git
-    clusterGroupChartVersion: relax_patternref
+    clusterGroupChartGitRevision: relax_patternref
