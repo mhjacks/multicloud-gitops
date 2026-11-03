@@ -21,6 +21,7 @@ clusterGroup:
   # We can use self-referential variables because the chart calls the tpl function with these variables defined
   sharedValueFiles:
     - '/overrides/values-{{ $.Values.global.clusterPlatform }}.yaml'
+    - 'https://raw.githubusercontent.com/mhjacks/aap-starter-kit/refs/heads/compose_test/variants/minimal-aap/values-minimal-aap-cpt.yaml'
   # sharedValueFiles is a flexible mechanism that will add the listed valuefiles to every app defined in the
   # applications section.
   #
